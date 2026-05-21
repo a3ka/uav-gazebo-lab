@@ -89,6 +89,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         zip \
     && rm -rf /var/lib/apt/lists/*
 
+# PX4 Python build deps (kconfiglib, nunavut, pymavlink, etc.). Mirror of
+# PX4-Autopilot/Tools/setup/requirements.txt at our pinned commit — see
+# the docker/requirements-px4.txt header comment for the source commit ID.
+COPY docker/requirements-px4.txt /tmp/requirements-px4.txt
+RUN python3 -m pip install --break-system-packages --no-cache-dir \
+        -r /tmp/requirements-px4.txt \
+    && rm /tmp/requirements-px4.txt
+
 # uXRCE-DDS Agent (PX4 ↔ ROS2 bridge — replaces older mavros for PX4 v1.14+)
 # Source build because the agent is not in ROS2 Jazzy apt repos for Ubuntu
 # 24.04. PX4's official guide uses the same upstream source build.

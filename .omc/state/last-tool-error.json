@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"docker run --rm uav-lab:cpu bash -c '\\n  python3 -m pip list 2>/dev/null | grep -iE \\\"kconfig|nunavut|pymavlink|pyulog|pyros|empy|jinja|jsonschema|kornia\\\" || true\\n  echo \\\"---\\\"\\n  pytho...",
+  "error": "Exit code 1\nempy                                 3.3.4\nJinja2                               3.1.2\njsonschema                           4.26.0\njsonschema-specifications            2025.9.1\nkconfiglib                           14.1.0\nnunavut                              2.3.1\npymavlink                            2.4.49\npyros-genmsg                         0.5.8\npyulog                               1.2.2\n---\nTraceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nAttributeError: m...",
+  "timestamp": "2026-05-21T20:58:02.067Z",
+  "retry_count": 2
+}

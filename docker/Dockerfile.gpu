@@ -117,6 +117,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         zip \
     && rm -rf /var/lib/apt/lists/*
 
+# PX4 Python build deps (same mirror as Dockerfile.cpu).
+COPY docker/requirements-px4.txt /tmp/requirements-px4.txt
+RUN python3 -m pip install --break-system-packages --no-cache-dir \
+        -r /tmp/requirements-px4.txt \
+    && rm /tmp/requirements-px4.txt
+
 # ─────────────────────────────────────────────────────────────────────────
 # GTSAM 4.2 (source build — same as CPU image; Jazzy apt only has 4.0.3)
 # ─────────────────────────────────────────────────────────────────────────

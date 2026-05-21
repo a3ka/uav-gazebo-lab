@@ -1,7 +1,6 @@
-# Keep build context small — Dockerfile only needs apt + Git clones,
-# nothing from this repo is COPY'd in.
+# Keep build context small — Dockerfile only needs apt + Git clones +
+# the PX4 requirements mirror.
 *
 
-# Allowlist only what docker build actually reads (currently nothing).
-# If a future Dockerfile starts COPYing source, allowlist those paths
-# here explicitly.
+# Allowlist files the Dockerfiles COPY.
+!docker/requirements-px4.txt
