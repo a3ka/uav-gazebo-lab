@@ -146,6 +146,7 @@ Complete all of these before starting Phase 0. Cost: free, ~half-day.
 | **PF-4** | Confirm paper v9_8 PDF is locked reference (vN.M and date); store local copy under `docs/reference/` | Avoid drift if paper revisions land |
 | **PF-5** | Lock PoO algorithm spec — write `docs/poo-algorithm-spec.md` answering: keypoint detector? descriptor? matcher? VERIFIED threshold function? satellite reference image acquisition? | Phase 1 cannot start with these open |
 | **PF-6** | Cost-tracking spreadsheet (or `docs/cost-budget.md`) with running spend per phase | Required by Hard Rule 6 (CLAUDE.md analog from sakana-lab) |
+| **PF-7** | Build both Docker images (`uav-lab:cpu`, `uav-lab:gpu`); push GPU image to registry; smoke-test `docker compose --profile cpu run --rm dev` opens a shell with ROS2 + Gazebo working | Phase 0 first item depends on this; also gates local-to-rental migration path |
 
 ---
 
@@ -165,14 +166,23 @@ Pre-flight PF-1 through PF-6 complete.
 ~1.5 weeks. $0 (excluding any vast.ai signup deposits).
 
 ### Spec
-1. **ROS2 Jazzy install** (apt). Verify `ros2 topic list` works.
-2. **ros_gz_bridge** install. Smoke test: spawn empty Gazebo world,
-   bridge `/clock` topic, confirm ROS2 sees it.
-3. **PX4 main clone + build** with Gazebo Harmonic config. Confirm
-   `make px4_sitl gz_x500` launches a single drone.
-4. **uXRCE-DDS agent** install + verify. Confirm
-   `ros2 topic list` shows PX4 topics (e.g. `/fmu/out/vehicle_local_position`)
-   when single drone runs.
+0. **Docker images first** — build `uav-lab:cpu` from
+   `docker/Dockerfile.cpu`; build `uav-lab:gpu` from
+   `docker/Dockerfile.gpu`. Smoke test: `docker compose --profile cpu
+   run --rm dev` opens a shell with ROS2 Jazzy + Gazebo Harmonic +
+   uXRCE-DDS + GTSAM 4.2 already installed. Push GPU image to
+   registry (used by vast.ai later). All subsequent Phase 0 items
+   run INSIDE the container.
+1. **ROS2 Jazzy** — verify `ros2 topic list` works inside the CPU
+   container (no host install).
+2. **ros_gz_bridge** — smoke test: spawn empty Gazebo world inside
+   the container, bridge `/clock` topic, confirm ROS2 sees it.
+3. **PX4 main clone + build** — clone to host-side
+   `../PX4-Autopilot/`, build inside container with Gazebo Harmonic
+   config. Confirm `make px4_sitl gz_x500` launches a single drone.
+4. **uXRCE-DDS agent** — already in image; verify by running and
+   confirming PX4 topics (e.g. `/fmu/out/vehicle_local_position`)
+   appear in `ros2 topic list` when single drone runs.
 5. **Multi-vehicle spawn script** — launch 10-20 PX4 SITL instances in
    one Gazebo world, verify each gets a unique `/pxN/...` topic
    namespace.
@@ -641,3 +651,8 @@ These are all normal scope splits for sim-validated UAV papers.
   re-doing. Naive M1 (relay formula validation in Python) DROPPED in
   favor of Phase 3 (CEP + relay refit in factor graph with measured
   reality).
+- **2026-05-21** — Docker-first dev surface added (CLAUDE.md Hard Rule 8).
+  Two images: `uav-lab:cpu` for local Phase 0/4/5, `uav-lab:gpu` for
+  vast.ai Phase 1/2/3. Same dev pattern as sister sakana-lab. Phase 0
+  Spec item 0 + PF-7 added accordingly. Host machine never gets ROS2 /
+  Gazebo / PX4 / GTSAM installed directly.

@@ -1,0 +1,147 @@
+# uav-gazebo-lab — CPU image (headless development + Phase 0/4/5)
+#
+# Build:
+#   docker build -f docker/Dockerfile.cpu -t uav-lab:cpu .
+#
+# Run (mounted source + workspace + datasets):
+#   docker run --rm -it \
+#       --net=host \
+#       -v $PWD:/workspace/uav-gazebo-lab \
+#       -v $PWD/workspaces:/run-data \
+#       -v $PWD/datasets:/datasets \
+#       uav-lab:cpu
+#
+# What's baked in: ROS2 Jazzy + Gazebo Harmonic + ros_gz_bridge + PX4 build
+# deps + uXRCE-DDS agent + GTSAM (apt) + Python tooling.
+#
+# What's NOT baked in (mounted as volumes — see docker/README.md):
+#   /workspace/uav-gazebo-lab   — this project source
+#   /workspace/PX4-Autopilot    — PX4 source (cloned by scripts/bootstrap.sh)
+#   /workspace/ros2_ws          — colcon workspace (incremental build cache)
+#   /run-data                   — per-run bags + metrics
+#   /datasets                   — Sentinel-2 staged imagery (Phase 0 PF-2)
+
+FROM ros:jazzy-ros-base
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    LANG=en_US.UTF-8
+
+# ─────────────────────────────────────────────────────────────────────────
+# System deps + Gazebo Harmonic
+# ─────────────────────────────────────────────────────────────────────────
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl \
+        ca-certificates \
+        gnupg2 \
+        lsb-release \
+        git \
+        wget \
+        build-essential \
+        cmake \
+        ninja-build \
+        pkg-config \
+        sudo \
+        vim \
+        less \
+        jq \
+        python3-pip \
+        python3-venv \
+        python3-colcon-common-extensions \
+    && rm -rf /var/lib/apt/lists/*
+
+# Gazebo Harmonic (from osrfoundation.org — official repo)
+RUN curl -sSL https://packages.osrfoundation.org/gazebo.gpg \
+        -o /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" \
+        | tee /etc/apt/sources.list.d/gazebo-stable.list \
+    && apt-get update && apt-get install -y --no-install-recommends \
+        gz-harmonic \
+        ros-jazzy-ros-gz \
+        ros-jazzy-ros-gz-bridge \
+        ros-jazzy-ros-gz-sim \
+    && rm -rf /var/lib/apt/lists/*
+
+# ─────────────────────────────────────────────────────────────────────────
+# PX4 build dependencies
+# (PX4 ships its own ubuntu.sh installer — used here on a stable commit)
+# ─────────────────────────────────────────────────────────────────────────
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        astyle \
+        clang \
+        clang-tidy \
+        cppcheck \
+        file \
+        gdb \
+        lcov \
+        libfuse2 \
+        libxml2-dev \
+        libxml2-utils \
+        libxslt1-dev \
+        python3-dev \
+        python3-empy \
+        python3-jinja2 \
+        python3-numpy \
+        python3-toml \
+        python3-yaml \
+        unzip \
+        zip \
+    && rm -rf /var/lib/apt/lists/*
+
+# uXRCE-DDS Agent (PX4 ↔ ROS2 bridge — replaces older mavros for PX4 v1.14+)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ros-jazzy-microxrcedds-agent \
+    && rm -rf /var/lib/apt/lists/*
+
+# GTSAM 4.2 — factor graph backend for Phase 3 CEP measurement.
+# Source build because Jazzy apt ships 4.0.3 only; 4.2 needed for the
+# iSAM2 + fixed-lag smoother APIs we use.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libboost-all-dev \
+        libtbb-dev \
+        libeigen3-dev \
+    && rm -rf /var/lib/apt/lists/*
+RUN git clone --depth 1 --branch 4.2 https://github.com/borglab/gtsam.git /tmp/gtsam \
+    && cd /tmp/gtsam && mkdir build && cd build \
+    && cmake -DGTSAM_BUILD_PYTHON=ON \
+             -DGTSAM_USE_SYSTEM_EIGEN=ON \
+             -DGTSAM_BUILD_TESTS=OFF \
+             -DGTSAM_BUILD_EXAMPLES_ALWAYS=OFF \
+             -G Ninja .. \
+    && ninja -j$(nproc) && ninja install \
+    && ldconfig \
+    && rm -rf /tmp/gtsam
+
+# ─────────────────────────────────────────────────────────────────────────
+# Python tooling (analysis scripts, dataset acquisition, metrics)
+# ─────────────────────────────────────────────────────────────────────────
+RUN python3 -m pip install --break-system-packages --no-cache-dir \
+        numpy \
+        scipy \
+        pandas \
+        matplotlib \
+        pyyaml \
+        sentinelsat \
+        rasterio \
+        opencv-python-headless
+
+# ─────────────────────────────────────────────────────────────────────────
+# Non-root user (workspaces + bag files live as host UID, not root)
+# ─────────────────────────────────────────────────────────────────────────
+ARG USERNAME=lab
+ARG USER_UID=1000
+ARG USER_GID=1000
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m -s /bin/bash $USERNAME \
+    && echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME
+
+USER $USERNAME
+WORKDIR /workspace/uav-gazebo-lab
+
+# Auto-source ROS2 on shell entry
+RUN echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc \
+    && echo "[ -f /workspace/ros2_ws/install/setup.bash ] && source /workspace/ros2_ws/install/setup.bash" >> ~/.bashrc
+
+CMD ["/bin/bash"]

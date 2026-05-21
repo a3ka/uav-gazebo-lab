@@ -78,6 +78,16 @@ the paper claim or it doesn't.
    erratum, v10 update with conservative bound retained as worst-case)
    BEFORE running the experiment.
 
+8. **Docker-first development. No host installs.** ROS2, Gazebo, PX4,
+   GTSAM, CUDA, PyTorch — all live inside the `uav-lab:cpu` /
+   `uav-lab:gpu` images. The host machine never gets these packages
+   directly. Local Phase 0/4/5 dev uses the CPU image; vast.ai Phase
+   1/2/3 work uses the GPU image. This is what allows local-to-rental
+   migration to be one command, not one afternoon. Image definitions
+   live in `docker/`. If you find yourself running `apt-get install
+   ros-jazzy-*` on the host, stop — that goes in `Dockerfile.cpu`
+   instead.
+
 ## Stack lock
 
 | Component | Version | Why |

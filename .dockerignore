@@ -1,0 +1,7 @@
+# Keep build context small — Dockerfile only needs apt + Git clones,
+# nothing from this repo is COPY'd in.
+*
+
+# Allowlist only what docker build actually reads (currently nothing).
+# If a future Dockerfile starts COPYing source, allowlist those paths
+# here explicitly.

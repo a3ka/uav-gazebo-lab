@@ -1,0 +1,69 @@
+# docker-compose for uav-gazebo-lab.
+#
+# Profiles:
+#   cpu — local headless dev for Phase 0, 4, 5
+#   gpu — vast.ai rental for Phase 1, 2, 3 (vision-heavy)
+#
+# Usage:
+#   docker compose --profile cpu run --rm dev
+#   docker compose --profile gpu run --rm dev
+#
+# Both profiles share the same source / workspace / dataset / run-data
+# bind mounts so an experiment can be developed under cpu and re-run
+# under gpu without changing paths.
+
+services:
+  dev:
+    profiles: ["cpu"]
+    image: uav-lab:cpu
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.cpu
+    network_mode: host          # ROS2 DDS auto-discovery + Gazebo transport
+    ipc: host                   # required for shared-memory DDS
+    pid: host                   # so ps inside container shows PX4 processes
+    environment:
+      - ROS_DOMAIN_ID=42
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+    volumes:
+      - ../:/workspace/uav-gazebo-lab
+      - ../../PX4-Autopilot:/workspace/PX4-Autopilot   # bootstrap.sh clones here
+      - ros2_ws:/workspace/ros2_ws                     # named volume: colcon cache
+      - ../workspaces:/run-data
+      - ../datasets:/datasets
+    stdin_open: true
+    tty: true
+
+  dev-gpu:
+    profiles: ["gpu"]
+    image: uav-lab:gpu
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.gpu
+    network_mode: host
+    ipc: host
+    pid: host
+    environment:
+      - ROS_DOMAIN_ID=42
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    volumes:
+      - ../:/workspace/uav-gazebo-lab
+      - ../../PX4-Autopilot:/workspace/PX4-Autopilot
+      - ros2_ws_gpu:/workspace/ros2_ws
+      - ../workspaces:/run-data
+      - ../datasets:/datasets
+    stdin_open: true
+    tty: true
+
+volumes:
+  ros2_ws:
+  ros2_ws_gpu:
