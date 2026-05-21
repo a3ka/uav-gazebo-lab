@@ -1,3 +1,4 @@
 {"t":0,"agent":"ab2143c","agent_type":"general-purpose","event":"agent_start","parent_mode":"none"}
 {"t":0,"agent":"ab2143c","agent_type":"general-purpose","event":"agent_stop","success":true,"duration_ms":106280}
 {"t":0,"agent":"a488325","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"aafb33c","agent_type":"unknown","event":"agent_stop","success":true}
