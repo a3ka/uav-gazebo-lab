@@ -17,7 +17,14 @@
 #
 # Image size ~10 GB. Build once locally, push to registry, vast.ai pulls.
 
-FROM nvidia/cuda:12.4.1-cudnn-runtime-ubuntu24.04
+# CUDA 12.4 + Ubuntu 24.04 was the original target (to match the
+# CUDA Toolkit version PyTorch 2.5.1 was built against, cu124), but
+# NVIDIA does not publish 12.4 images on Ubuntu 24.04 -- only Ubuntu
+# 22.04. We use 12.6.3 on Ubuntu 24.04 instead so the userspace
+# matches Dockerfile.cpu (same ROS2 Jazzy apt repos, same Python
+# minor). PyTorch cu124 wheels are forward-compatible with CUDA 12.6
+# runtime per NVIDIA's CUDA compatibility guarantee.
+FROM nvidia/cuda:12.6.3-cudnn-runtime-ubuntu24.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -161,8 +168,11 @@ RUN python3 -m pip install --break-system-packages --no-cache-dir \
         sentinelsat \
         rasterio \
         opencv-python-headless \
-        kornia \
-        lightglue
+        kornia
+# LightGlue is not on PyPI; install only if Phase 1 sensitivity sweep
+# actually exercises it (paper spec uses Lowe ratio matcher, not
+# LightGlue). To add later:
+#   pip install git+https://github.com/cvg/LightGlue.git@<commit>
 
 # ─────────────────────────────────────────────────────────────────────────
 # Non-root user (matches Dockerfile.cpu so volume permissions align).

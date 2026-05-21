@@ -23,6 +23,9 @@ setup(
             'position_broadcaster_node = uav_swarm_nodes.position_broadcaster_node:main',
             'uwb_ranging_simulator_node = uav_swarm_nodes.uwb_ranging_simulator_node:main',
             'comm_logger_node = uav_swarm_nodes.comm_logger_node:main',
+            # Phase 4 failover protocol
+            'anchor_node = uav_swarm_nodes.anchor_node:main',
+            'follower_node = uav_swarm_nodes.follower_node:main',
         ],
     },
 )

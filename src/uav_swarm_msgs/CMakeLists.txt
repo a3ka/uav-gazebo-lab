@@ -15,6 +15,10 @@ set(msg_files
   msg/DistilledState.msg
   msg/NoisyPose.msg
   msg/ReputationUpdate.msg
+  # Failover protocol (paper Section IV-F, Phase 4 implementation)
+  msg/ReassignRequest.msg
+  msg/ReassignOffer.msg
+  msg/AttachAck.msg
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}
