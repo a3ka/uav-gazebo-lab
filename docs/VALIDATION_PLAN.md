@@ -141,7 +141,7 @@ Complete all of these before starting Phase 0. Cost: free, ~half-day.
 | Check | What | Why |
 |---|---|---|
 | **PF-1** ✅ | SwarmRaft reference exists (Skoltech, arXiv 2508.00622). Pure Python Monte Carlo — not Gazebo/ROS2. Phase 8 revised: ~3-7 days ROS2 wrapping, not +2 wk reimplementation. License undeclared on the repos; author contact required before vendoring. See `docs/preflight/pf-1-swarmraft.md`. | Phase 8 scope known. |
-| **PF-2** ⏳ | Copernicus Data Space Ecosystem account — user-driven signup at https://dataspace.copernicus.eu. Credentials go into `.env` (template at `.env.example`). See `docs/preflight/pf-2-copernicus.md`. | Phase 0 dataset staging blocks. |
+| **PF-2** ✅ | Copernicus account created + credentials in `.env` (user). Sentinel-2 staging itself deferred — Phase 0 item 8 satisfied by re-using Zurich Z16 tiles from sibling `einhard-runtime` (10× finer resolution, ORB smoke ~1998 keypoints/tile, 2.2×3.3 km coverage matches paper IV-D operational range). Sentinel-2 stays as Phase 1 sensitivity-sweep deliverable. See `docs/poo-algorithm-spec.md` "Dataset choice rationale". | Phase 0 unblocked. |
 | **PF-3** ⏸ | vast.ai account + deposit — **DEFERRED** by user decision (2026-05-21) until GPU image and first GPU experiment are ready (closer to Phase 1 start). Phase 0/4/5 do not block on this. | Phase 1 GPU work blocks. |
 | **PF-4** ✅ | v9_8 PDF + tex copied to `docs/reference/` as frozen reference (from `audit-harness/inputs/papers/`). | Avoid drift if paper revisions land. |
 | **PF-5** ✅ | PoO algorithm spec locked at `docs/poo-algorithm-spec.md` (2026-05-21). All paper-locked values in §IV-B traced + cited; Phase-1-specific Track 2 deferrals closed with concrete defaults (SuperPoint pretrained weights, Mode A only, Lowe ratio matcher per paper spec, ~50 km replay byzantine model, Sentinel-2 L2A at 480×640 px). Sensitivity sweep over T_verify ∈ {0.2, 0.3, 0.4} retained as Phase 1 measurement output (paper-specified). | Phase 1 can now start. |
@@ -197,9 +197,13 @@ Pre-flight PF-1 through PF-6 complete.
      realistic UWB noise model (σ_range ~ 0.1 m + bias)
    - `comm_logger_node` — logs message sizes + send rates (feeds
      Phase 0 comm-complexity check)
-8. **Sentinel-2 dataset staging** — download region of interest,
-   tile, convert to formats the Gazebo camera plugin and SuperPoint
-   can both consume. Store under `datasets/staged/`.
+8. **Imagery dataset staging** — primary dataset is Zurich Z16 PNG
+   tiles re-used from sibling `einhard-runtime` project, symlinked at
+   `datasets/staged/zurich-z16/` (32 tiles, ~1 m/pixel, 2.2 x 3.3 km
+   coverage, ORB smoke ~1998 keypoints/tile). Sentinel-2 L2A staging
+   stays as a Phase 1 sensitivity-sweep deliverable but is NOT
+   blocking Phase 0 closure -- see `docs/poo-algorithm-spec.md`
+   "Dataset choice rationale".
 9. **Gazebo camera + SuperPoint smoke test** — render one frame from
    a Gazebo drone above a Sentinel-2-textured ground plane; run
    SuperPoint; confirm ≥500 keypoints. If not, Risk-9 mitigation

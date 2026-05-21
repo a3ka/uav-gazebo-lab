@@ -44,12 +44,43 @@ baseline; sensitivity sweep around them is Phase 1's job.
 | SuperPoint pretrained weights | **MagicLeap official `superpoint_v1.pth`** (mirror: HuggingFace `magicleap/superpoint`) | The reference release of [detone2018superpoint]. Re-training out of scope. |
 | Matcher | **Brute-force nearest-neighbour in L2 with Lowe ratio τ=0.7** | Exactly what paper §IV-B specifies. NOT LightGlue — LightGlue is more permissive and would shift FAR/FRR away from paper-as-stated. The image bakes in `lightglue` as an available library so Phase 1 sensitivity sweep can A/B it later, but baseline measurement uses paper-spec Lowe ratio. |
 | Mode for Phase 1 measurement | **Mode A (compact descriptor set, K=20)** | Mode A allows direct FAR/FRR characterisation: the score V is continuous over [0, 1] so a ROC curve can be computed. Mode B is binary (hash matches or doesn't) and reduces to a different test. Mode B characterisation is its own work item, deferred. |
-| Image source for satellite reference | **Sentinel-2 L2A surface reflectance tiles** (~10 m/pixel, RGB bands B04/B03/B02) | Free via CDSE (PF-2), standard in geospatial research, sufficient feature density for SuperPoint. |
+| Image source for satellite reference | **Zurich Z16 aerial PNG tiles** (~1 m/pixel, 32× 400×400 covering 2.2 × 3.3 km at 47.39-47.41°N, 8.53-8.57°E) for Phase 0 + Phase 1 initial. Sentinel-2 L2A staging deferred to Phase 1 sensitivity sweep (or Phase 8 reviewer-defence). See "Dataset choice rationale" below. | Existing dataset re-used from sibling einhard-runtime project (PF-2 saves 2-3 days). Resolution 10× finer than Sentinel-2; ORB smoke shows ~1998 keypoints/tile vs paper's 200-500 typical — well above the density floor SuperPoint needs. |
 | Camera model in Gazebo | **Standard `gz-sim` camera plugin** at 480×640 px, FOV ≈ 60°, mounted nadir-pointing | Matches paper's stated SuperPoint input resolution. FOV is a Gazebo-default reasonable starting point; not specified in paper. |
 | Drone altitude in Phase 1 | **150 m AGL** (cruise altitude per §III paper "System Model") | Inside SuperPoint's effective range; matches paper's stated cruise envelope. |
 | Sentinel-2 tile selection | **One ~100 × 100 km patch with mixed urban/rural texture; ≤10% cloud cover; recent acquisition** | Mixed texture ensures keypoint density variation across scene. Exact tile chosen during Phase 0 dataset staging. |
 | Byzantine forge strategy in Phase 1 | **Replay**: byzantine UAV serves descriptors from a *different* Sentinel-2 tile (~50 km offset) as if it were observing the current location | Most realistic Byzantine threat model for PoO. Catches paper's "captured UAV without imagery DB" scenario. |
 | Honest noise injection | **Sun-angle / motion-blur / partial-cloud variation in Gazebo lighting + camera plugin parameters** | Exercises Assumption (iv) inlier ranges (60-90% clean, 20-40% degraded) without leaving the paper-specified physics. |
+
+## 2b. Dataset choice rationale (2026-05-21)
+
+Pre-flight check PF-2 found that the sibling `einhard-runtime` project
+already has 32 PNG tiles of Zurich Z16 zoom (47.39-47.41 N, 8.53-8.57 E,
+~2.2 x 3.3 km, ~1 m/pixel). Compared to the original Sentinel-2 plan:
+
+| Aspect | Sentinel-2 L2A (planned) | Zurich Z16 (re-used) |
+|---|---|---|
+| Resolution | 10 m/pixel | ~1 m/pixel (10x finer) |
+| Coverage | ~100 km x 100 km | 2.2 km x 3.3 km |
+| Acquisition time | 2-3 days (Copernicus 30 GB/day cap) | instant (already staged) |
+| Feature density (smoke) | unverified | 1998 ORB keypoints in 400x400 px tile |
+| Reviewer expectation | yes (standard geospatial source) | needs justification |
+
+**Decision:** use Zurich Z16 for Phase 0 + Phase 1 initial measurement.
+- Resolution is strictly better; feature density well above SuperPoint's
+  typical 200-500 floor; coverage 2.2 x 3.3 km exceeds paper IV-D operational
+  range (1.5 km).
+- Sentinel-2 staging is **not abandoned** -- it stays as a Phase 1
+  sensitivity-sweep deliverable: re-run a subset of FAR/FRR trials on
+  Sentinel-2 derived imagery to validate that PoO behaviour is not an
+  artefact of the higher-resolution dataset.
+- If a paper reviewer pushes back on dataset provenance (Phase 8), we
+  re-run on Sentinel-2 then; the Z16 results are not part of the paper's
+  primary FAR/FRR claim until that sensitivity sweep is in.
+
+The tiles symlink at `datasets/staged/zurich-z16/` -> sibling project.
+Original source is unconfirmed (likely Bing / Mapbox / OSM); for any
+external publication usage we need to confirm license with the
+einhard-runtime maintainer.
 
 ## 3. Phase 1 algorithm — step-by-step
 
