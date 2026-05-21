@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>uav_swarm_nodes</name>
+  <version>0.1.0</version>
+  <description>
+    Shared utility ROS2 nodes for the BFT UAV swarm validation testbed
+    (Phase 0 item 7). MVP scope:
+      - position_broadcaster_node: publishes NoisyPose at a configurable
+        rate with sigma noise injected on top of a (synthetic or
+        externally-provided) ground-truth position.
+      - uwb_ranging_simulator_node: publishes pairwise range
+        measurements with sigma_range = 0.1 m Gaussian noise.
+      - comm_logger_node: logs subscribed-topic byte sizes and send
+        rates (feeds Phase 0 item 10 comm-complexity check).
+  </description>
+  <maintainer email="lab@uav-gazebo-lab.local">uav-gazebo-lab</maintainer>
+  <license>Apache-2.0</license>
+
+  <depend>rclpy</depend>
+  <depend>geometry_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>uav_swarm_msgs</depend>
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

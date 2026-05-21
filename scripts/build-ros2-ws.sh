@@ -18,8 +18,9 @@ set -eo pipefail
 WS=/workspace/ros2_ws
 cd "$WS"
 
-[[ -d src/px4_msgs ]]       || { echo "FAIL: src/px4_msgs missing"; exit 1; }
-[[ -d src/uav_swarm_msgs ]] || { echo "FAIL: src/uav_swarm_msgs missing"; exit 1; }
+[[ -d src/px4_msgs ]]        || { echo "FAIL: src/px4_msgs missing"; exit 1; }
+[[ -d src/uav_swarm_msgs ]]  || { echo "FAIL: src/uav_swarm_msgs missing"; exit 1; }
+[[ -d src/uav_swarm_nodes ]] || { echo "FAIL: src/uav_swarm_nodes missing"; exit 1; }
 
 # shellcheck disable=SC1091
 source /opt/ros/jazzy/setup.bash
@@ -29,7 +30,7 @@ JOBS=$(($(nproc) - 1))
 
 echo "=== Colcon build (jobs=$JOBS) ==="
 colcon build --symlink-install \
-    --packages-select px4_msgs uav_swarm_msgs \
+    --packages-select px4_msgs uav_swarm_msgs uav_swarm_nodes \
     --parallel-workers "$JOBS"
 
 echo ""
@@ -42,6 +43,7 @@ source install/setup.bash
 # early, and pipefail turns that into a false fail.
 PKG_LIST=$(ros2 pkg list 2>/dev/null)
 
+# Message packages first
 for pkg in px4_msgs uav_swarm_msgs; do
     if ! grep -qx "$pkg" <<<"$PKG_LIST"; then
         echo "FAIL: $pkg not registered with ROS2 after build"
@@ -53,6 +55,18 @@ for pkg in px4_msgs uav_swarm_msgs; do
     PKG_IFACES=$(ros2 interface package "$pkg" 2>/dev/null || true)
     COUNT=$(grep -c '^' <<<"$PKG_IFACES" || true)
     echo "  $pkg: $COUNT interfaces registered"
+done
+
+# Node package (no interfaces -- just verify package + entry points
+# are registered)
+for pkg in uav_swarm_nodes; do
+    if ! grep -qx "$pkg" <<<"$PKG_LIST"; then
+        echo "FAIL: $pkg not registered with ROS2 after build"
+        exit 1
+    fi
+    EXECS=$(ros2 pkg executables "$pkg" 2>/dev/null || true)
+    COUNT=$(grep -c '^' <<<"$EXECS" || true)
+    echo "  $pkg: $COUNT executables registered"
 done
 
 echo ""
