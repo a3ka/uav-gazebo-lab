@@ -140,7 +140,7 @@ Complete all of these before starting Phase 0. Cost: free, ~half-day.
 
 | Check | What | Why |
 |---|---|---|
-| **PF-1** | Confirm SwarmRaft open-source reference availability (GitHub search, paper supplementary, contact authors if necessary) | If no ref, Phase 8 cost adds ~2 wk dev. User needs to know real total scope. |
+| **PF-1** ✅ | Confirm SwarmRaft open-source reference availability — DONE 2026-05-21, see `docs/preflight/pf-1-swarmraft.md`. Reference exists (Skoltech repos, arXiv 2508.00622), but is pure Python Monte Carlo, not Gazebo/ROS2. Phase 8 revised: ~3-7 days ROS2 wrapping, not +2 wk reimplementation. License is undeclared on the repos — author contact required before vendoring. | Phase 8 scope known. |
 | **PF-2** | Create Copernicus Open Access account (free); confirm Sentinel-2 download API works | Phase 0 dataset staging blocks otherwise |
 | **PF-3** | Create vast.ai account, top up with $50 starter | Phase 1 GPU work blocks otherwise |
 | **PF-4** | Confirm paper v9_8 PDF is locked reference (vN.M and date); store local copy under `docs/reference/` | Avoid drift if paper revisions land |
@@ -591,14 +591,29 @@ in place of our system).
 Phase 7 complete. PF-1 done (SwarmRaft reference availability known).
 
 ### Time / cost
-~30-60 GPU-hours implementation runs. $15-50. Plus ~2 wk dev time IF
-no open-source SwarmRaft reference (per PF-1).
+~30-60 GPU-hours implementation runs. $15-50. Plus **~3-7 days** ROS2
+wrapping of the existing SwarmRaft Python simulator (kapeldev/SwarmRaft
+canonical, yashmadhwal/SwarmRaft alternate — see
+`docs/preflight/pf-1-swarmraft.md`). Down from +2 wk thanks to PF-1
+finding that reference impl exists.
+
+### Pre-step (before Phase 8 starts)
+- Contact Skoltech authors (yyanovich@skoltech.ru) for explicit
+  license grant on `kapeldev/SwarmRaft` — repo has no LICENSE file,
+  default "all rights reserved." Required before vendoring as
+  submodule/fork. Fair-use academic comparison (run + report
+  numbers) is generally tolerated without grant but redistribution
+  in our repo needs it.
 
 ### Spec
-- Implement (or use reference) SwarmRaft in same ROS2/Gazebo stack
+- Port SwarmRaft consensus + voting logic from the Python simulator
+  to ROS2 nodes runnable in our Gazebo stack
+- Verify algorithmic parity: run our port on the Monte Carlo
+  scenarios from the upstream repo, match published numbers within
+  tolerance
 - Re-run Phase 3 (CEP vs hops) and Phase 6 (attrition + load
-  balancing) with SwarmRaft replacing our system
-- Same metrics, same scenarios
+  balancing) with SwarmRaft node in place of our system
+- Same metrics, same scenarios as Phase 3 / 6
 
 ### Pass criteria
 - Comparative table populated with measured values for both systems
