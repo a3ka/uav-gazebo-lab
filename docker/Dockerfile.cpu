@@ -90,9 +90,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # uXRCE-DDS Agent (PX4 ↔ ROS2 bridge — replaces older mavros for PX4 v1.14+)
+# Source build because the agent is not in ROS2 Jazzy apt repos for Ubuntu
+# 24.04. PX4's official guide uses the same upstream source build.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        ros-jazzy-microxrcedds-agent \
+        libasio-dev \
+        libtinyxml2-dev \
     && rm -rf /var/lib/apt/lists/*
+RUN git clone --depth 1 --branch v2.4.3 \
+        https://github.com/eProsima/Micro-XRCE-DDS-Agent.git /tmp/uxrce-agent \
+    && cd /tmp/uxrce-agent && mkdir build && cd build \
+    && cmake -G Ninja .. \
+    && ninja -j$(nproc) && ninja install \
+    && ldconfig /usr/local/lib/ \
+    && rm -rf /tmp/uxrce-agent
 
 # GTSAM 4.2 — factor graph backend for Phase 3 CEP measurement.
 # Source build because Jazzy apt ships 4.0.3 only; 4.2 needed for the

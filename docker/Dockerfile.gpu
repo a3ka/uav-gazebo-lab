@@ -75,8 +75,20 @@ RUN curl -sSL https://packages.osrfoundation.org/gazebo.gpg \
         ros-jazzy-ros-gz \
         ros-jazzy-ros-gz-bridge \
         ros-jazzy-ros-gz-sim \
-        ros-jazzy-microxrcedds-agent \
     && rm -rf /var/lib/apt/lists/*
+
+# uXRCE-DDS Agent (source build — not in Jazzy apt; PX4's official path)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libasio-dev \
+        libtinyxml2-dev \
+    && rm -rf /var/lib/apt/lists/*
+RUN git clone --depth 1 --branch v2.4.3 \
+        https://github.com/eProsima/Micro-XRCE-DDS-Agent.git /tmp/uxrce-agent \
+    && cd /tmp/uxrce-agent && mkdir build && cd build \
+    && cmake -G Ninja .. \
+    && ninja -j$(nproc) && ninja install \
+    && ldconfig /usr/local/lib/ \
+    && rm -rf /tmp/uxrce-agent
 
 # ─────────────────────────────────────────────────────────────────────────
 # PX4 build deps (same set as Dockerfile.cpu)
