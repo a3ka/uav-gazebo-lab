@@ -127,7 +127,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 RUN git clone --depth 1 --branch 4.2 https://github.com/borglab/gtsam.git /tmp/gtsam \
     && cd /tmp/gtsam && mkdir build && cd build \
-    && cmake -DGTSAM_BUILD_PYTHON=ON \
+    && cmake -DGTSAM_BUILD_PYTHON=OFF \
              -DGTSAM_USE_SYSTEM_EIGEN=ON \
              -DGTSAM_BUILD_TESTS=OFF \
              -DGTSAM_BUILD_EXAMPLES_ALWAYS=OFF \
@@ -135,6 +135,9 @@ RUN git clone --depth 1 --branch 4.2 https://github.com/borglab/gtsam.git /tmp/g
     && ninja -j$(nproc) && ninja install \
     && ldconfig \
     && rm -rf /tmp/gtsam
+# Python bindings via precompiled PyPI wheel (same as Dockerfile.cpu).
+RUN python3 -m pip install --break-system-packages --no-cache-dir \
+        "gtsam==4.2.*"
 
 # ─────────────────────────────────────────────────────────────────────────
 # Vision stack — PyTorch (CUDA 12.4) + SuperPoint/LightGlue
@@ -156,12 +159,20 @@ RUN python3 -m pip install --break-system-packages --no-cache-dir \
         lightglue
 
 # ─────────────────────────────────────────────────────────────────────────
-# Non-root user (matches Dockerfile.cpu so volume permissions align)
+# Non-root user (matches Dockerfile.cpu so volume permissions align).
+# Ubuntu 24.04 base images ship a default `ubuntu` user at UID 1000; remove
+# it first so we can claim 1000 for our `lab` user.
 # ─────────────────────────────────────────────────────────────────────────
 ARG USERNAME=lab
 ARG USER_UID=1000
 ARG USER_GID=1000
-RUN groupadd --gid $USER_GID $USERNAME \
+RUN if getent passwd $USER_UID >/dev/null; then \
+        userdel -r "$(getent passwd $USER_UID | cut -d: -f1)" 2>/dev/null || true; \
+    fi \
+    && if getent group $USER_GID >/dev/null; then \
+        groupdel "$(getent group $USER_GID | cut -d: -f1)" 2>/dev/null || true; \
+    fi \
+    && groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m -s /bin/bash $USERNAME \
     && echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
