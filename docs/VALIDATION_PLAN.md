@@ -144,7 +144,7 @@ Complete all of these before starting Phase 0. Cost: free, ~half-day.
 | **PF-2** ⏳ | Copernicus Data Space Ecosystem account — user-driven signup at https://dataspace.copernicus.eu. Credentials go into `.env` (template at `.env.example`). See `docs/preflight/pf-2-copernicus.md`. | Phase 0 dataset staging blocks. |
 | **PF-3** ⏸ | vast.ai account + deposit — **DEFERRED** by user decision (2026-05-21) until GPU image and first GPU experiment are ready (closer to Phase 1 start). Phase 0/4/5 do not block on this. | Phase 1 GPU work blocks. |
 | **PF-4** ✅ | v9_8 PDF + tex copied to `docs/reference/` as frozen reference (from `audit-harness/inputs/papers/`). | Avoid drift if paper revisions land. |
-| **PF-5** | Lock PoO algorithm spec — write `docs/poo-algorithm-spec.md` answering: keypoint detector? descriptor? matcher? VERIFIED threshold function? satellite reference image acquisition? | Phase 1 cannot start with these open. |
+| **PF-5** ✅ | PoO algorithm spec locked at `docs/poo-algorithm-spec.md` (2026-05-21). All paper-locked values in §IV-B traced + cited; Phase-1-specific Track 2 deferrals closed with concrete defaults (SuperPoint pretrained weights, Mode A only, Lowe ratio matcher per paper spec, ~50 km replay byzantine model, Sentinel-2 L2A at 480×640 px). Sensitivity sweep over T_verify ∈ {0.2, 0.3, 0.4} retained as Phase 1 measurement output (paper-specified). | Phase 1 can now start. |
 | **PF-6** ✅ | Cost-tracking landed at `docs/cost-budget.md` ($500 cumulative cap, ~30% over $395 upper estimate). | Required by Hard Rule 6. |
 | **PF-7** 🟡 | Both Docker images build; push GPU to registry. CPU build kicked off, fixed uXRCE-DDS Agent install (source-build, not apt). Re-running in background. | Phase 0 first item depends on this. |
 
