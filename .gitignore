@@ -40,3 +40,7 @@ workspaces/*
 .idea/
 .vscode/
 *.swp
+
+# OMC / Claude Code tooling state
+.omc/
+.claude/
