@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"docker run --rm uav-lab:cpu bash -c '\\n  python3 -m pip list 2>/dev/null | grep -iE \\\"kconfig|nunavut|pymavlink|pyulog|pyros|empy|jinja|jsonschema|kornia\\\" || true\\n  echo \\\"---\\\"\\n  pytho...",
-  "error": "Exit code 1\nempy                                 3.3.4\nJinja2                               3.1.2\njsonschema                           4.26.0\njsonschema-specifications            2025.9.1\nkconfiglib                           14.1.0\nnunavut                              2.3.1\npymavlink                            2.4.49\npyros-genmsg                         0.5.8\npyulog                               1.2.2\n---\nTraceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nAttributeError: m...",
-  "timestamp": "2026-05-21T20:58:02.067Z",
+  "tool_input_preview": "{\"command\":\"docker run --rm \\\\\\n    --net=host --ipc=host \\\\\\n    -v /home/nous/research/uav-gazebo-lab:/workspace/uav-gazebo-lab \\\\\\n    -v /home/nous/research/PX4-Autopilot:/workspace/PX4-Autopilot ...",
+  "error": "Exit code 1\n=== Single-vehicle PX4 SITL smoke ===\nROS_DISTRO: jazzy\nPX4 HEAD:   4357049\nWorld:      /workspace/PX4-Autopilot/Tools/simulation/gz/worlds/default.sdf\n\n[1/4] Starting MicroXRCEAgent (UDP4 port 8888)...\n  ok — agent PID 15\n[2/4] Starting gz sim (headless, default.sdf)...\n  ok — gz sim PID 23, /clock visible\n[3/4] Launching PX4 SITL (PX4_GZ_STANDALONE=1, attaching to gz sim)...\n  PX4 PID 41 — waiting for /fmu/out/* topics...\n  ok — first PX4 topic seen: /fmu/out/airspeed_validated_v1 ...",
+  "timestamp": "2026-05-21T21:07:35.723Z",
   "retry_count": 2
 }
