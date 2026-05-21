@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"docker run --rm \\\\\\n    --net=host --ipc=host \\\\\\n    -v /home/nous/research/uav-gazebo-lab:/workspace/uav-gazebo-lab \\\\\\n    -v /home/nous/research/PX4-Autopilot:/workspace/PX4-Autopilot ...",
-  "error": "Exit code 1\n=== Single-vehicle PX4 SITL smoke ===\nROS_DISTRO: jazzy\nPX4 HEAD:   4357049\nWorld:      /workspace/PX4-Autopilot/Tools/simulation/gz/worlds/default.sdf\n\n[1/4] Starting MicroXRCEAgent (UDP4 port 8888)...\n  ok — agent PID 15\n[2/4] Starting gz sim (headless, default.sdf)...\n  ok — gz sim PID 23, /clock visible\n[3/4] Launching PX4 SITL (PX4_GZ_STANDALONE=1, attaching to gz sim)...\n  PX4 PID 41 — waiting for /fmu/out/* topics...\n  ok — first PX4 topic seen: /fmu/out/airspeed_validated_v1 ...",
-  "timestamp": "2026-05-21T21:07:35.723Z",
-  "retry_count": 2
+  "tool_input_preview": "{\"command\":\"chmod +x scripts/smoke-px4-multi.sh\\ndocker run --rm \\\\\\n    --net=host --ipc=host \\\\\\n    -v /home/nous/research/uav-gazebo-lab:/workspace/uav-gazebo-lab \\\\\\n    -v /home/nous/research/PX...",
+  "error": "Exit code 1\n=== Multi-vehicle PX4 SITL smoke (N=2) ===\nPX4 HEAD: 4357049\n\n[1/4] MicroXRCEAgent...\n  ok\n[2/4] gz sim (headless)...\n  ok\n[3/4] Launching 2 PX4 instances...\n  instance 0: pid 43, pose=(00,0,0.1)\n  instance 1: pid 239, pose=(10,0,0.1)\n  all 2 instances launched\n[4/4] Waiting for /px4_<i>/fmu/out/* topics in ROS2...\n  healthy instances: 1 / 2 (after 120s)\nFAIL: not all instances reported topics\n--- instance status ---\n  instance 0: 0 topics\n  instance 1: 27 topics\n--- last 20 lines in...",
+  "timestamp": "2026-05-21T21:16:13.861Z",
+  "retry_count": 1
 }

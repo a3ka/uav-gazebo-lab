@@ -88,6 +88,19 @@ the paper claim or it doesn't.
    ros-jazzy-*` on the host, stop — that goes in `Dockerfile.cpu`
    instead.
 
+9. **No leaked processes or containers after a test.** Every test
+   container runs with `docker run --rm` (auto-removed on exit) and
+   without `--pid=host` (so its PID namespace is isolated — all
+   in-container processes die when the container exits). Every smoke
+   script installs a single-shot trap that kills MicroXRCEAgent / PX4 /
+   gz sim explicitly on EXIT/INT/TERM. If a test crashes mid-run, the
+   `--rm` flag still cleans the container; if anything escapes (e.g.
+   someone runs binaries on the host accidentally),
+   `scripts/cleanup-host.sh` is the user-scoped wiper. After a test
+   session you should be able to run `docker ps`, `pgrep -u $USER -f
+   'bin/px4|MicroXRCEAgent|gz sim'`, and `ss -lnup | grep 8888` and
+   see nothing from this lab.
+
 ## Stack lock
 
 | Component | Version | Why |
