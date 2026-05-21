@@ -19,6 +19,9 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.cpu
+      args:
+        USER_UID: ${HOST_UID:-1000}
+        USER_GID: ${HOST_GID:-1000}
     network_mode: host          # ROS2 DDS auto-discovery + Gazebo transport
     ipc: host                   # required for shared-memory DDS
     pid: host                   # so ps inside container shows PX4 processes
@@ -40,6 +43,9 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.gpu
+      args:
+        USER_UID: ${HOST_UID:-1000}
+        USER_GID: ${HOST_GID:-1000}
     network_mode: host
     ipc: host
     pid: host

@@ -159,6 +159,13 @@ RUN if getent passwd $USER_UID >/dev/null; then \
     && echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
 
+# Trust all bind-mounted directories regardless of host UID. The lab user
+# inside the container may not match host file ownership; git's default
+# safe.directory check would otherwise refuse to operate inside
+# /workspace/PX4-Autopilot or /workspace/uav-gazebo-lab if the host UID
+# differs. System-wide config so it applies to root + lab.
+RUN git config --system --add safe.directory '*'
+
 USER $USERNAME
 WORKDIR /workspace/uav-gazebo-lab
 

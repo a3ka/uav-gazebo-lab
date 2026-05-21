@@ -177,6 +177,10 @@ RUN if getent passwd $USER_UID >/dev/null; then \
     && echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
 
+# Trust all bind-mounted directories regardless of host UID (see Dockerfile.cpu
+# for rationale).
+RUN git config --system --add safe.directory '*'
+
 USER $USERNAME
 WORKDIR /workspace/uav-gazebo-lab
 
