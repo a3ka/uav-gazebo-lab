@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"docker run --rm \\\\\\n    --net=host --ipc=host \\\\\\n    -v /home/nous/research/uav-gazebo-lab:/workspace/uav-gazebo-lab \\\\\\n    -v /home/nous/research/px4_msgs:/workspace/px4_msgs \\\\\\n    -v...",
-  "error": "Exit code 1\nros2 pkg list directly:\nTraceback (most recent call last):\n  File \"/opt/ros/jazzy/bin/ros2\", line 33, in <module>\n    sys.exit(load_entry_point('ros2cli==0.32.9', 'console_scripts', 'ros2')())\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^action_msgs\nactionlib_msgs\nactuator_msgs\nament_cmake\nament_cmake_auto\n^^^^^^^^^^^^^^\n  File \"/opt/ros/jazzy/lib/python3.12/site-packages/ros2cli/cli.py\", line 91, in main\n    rc = extension.main(parser=parser, args=args)\n         ^^...",
-  "timestamp": "2026-05-21T21:48:36.445Z",
-  "retry_count": 1
-}
