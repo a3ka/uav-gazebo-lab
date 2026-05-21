@@ -1,0 +1,116 @@
+# uav-gazebo-lab — System Instructions
+
+Track-3 project: **empirical validation testbed** for the BFT UAV Swarm
+paper (v9_8 on arXiv). Standalone — does NOT use Sakana for discovery.
+
+Read this file fully before any task. The single source of truth for what
+to validate and in what order is `docs/VALIDATION_PLAN.md`. Read that
+before starting any phase.
+
+## Project boundary (vs sister projects)
+
+| Project | Purpose | This relationship |
+|---|---|---|
+| `audit-harness/` (Track 1) | Catches fabrication in finished papers | Audits any papers/preprints we produce here |
+| `sakana-lab/` (Track 2) | LLM-driven research discovery | Independent. NOT used here. |
+| **`uav-gazebo-lab/` (Track 3)** | **Empirical validation in physics-grounded sim** | This project. |
+
+**Boundary rule:** This project does not use LLMs as part of any
+experimental loop. Measurements come from ROS2 / Gazebo / Python code,
+not from "the model said so."
+
+## Core principle
+
+Every claim made by this lab is either:
+- **MEASURED**: produced by an actual experiment run, raw data preserved,
+  measurement code under version control.
+- **NOT_MEASURED**: anything else (including educated guesses, paper
+  references, expert intuition).
+
+No "approximately validates" or "consistent with." A measurement matches
+the paper claim or it doesn't.
+
+## Hard rules
+
+1. **Risk-first phase ordering.** Validate the highest-risk novel
+   primitive first (PoO), not the easiest piece. If the highest-risk
+   primitive fails, downstream work is wasted — better to know in week 2
+   than week 12. See `VALIDATION_PLAN.md` for the locked phase order.
+
+2. **Two-tier scale is by design.** Gazebo for 10-20 UAV mechanism
+   validation (high fidelity). Python/GTSAM for 200-UAV statistical
+   results (Monte Carlo). 200 UAV in Gazebo is computationally infeasible
+   and reviewer-naive plans that propose it should be redirected to this
+   document.
+
+3. **Don't redo §VII-IX of the paper.** Abstract Monte Carlo results
+   (r=3, convergence bound, f-resilience up to 0.5) are already released
+   in v9_8. This lab augments those with physics — never replaces them.
+   When uncertain whether a result belongs here or in §VII-IX, default
+   to "augment with physics" (i.e. is there a value-add from Gazebo's
+   sensor/comm/flight realism that abstract sim can't produce?).
+
+4. **PoO algorithm spec must be locked before Phase 1.** Paper describes
+   the PoO concept but does not pin algorithmic choices (SuperPoint vs
+   ORB, LightGlue vs ratio-test matching, exact VERIFIED threshold
+   function). Phase 1 results would be inconclusive if these decisions
+   are made ad-hoc during implementation. Spec lock lives in
+   `docs/poo-algorithm-spec.md` and must be reviewed before Phase 1
+   code starts.
+
+5. **Hardware target matches phase.** Vision phases (1, 2, 3) require
+   GPU and run on vast.ai rentals. Headless phases (0, 4, 5) run on
+   local CPU. Don't build the wrong infrastructure — if you find
+   yourself implementing camera pipeline on local CPU, stop and check
+   the phase's hardware target.
+
+6. **Raw data preservation.** Every Gazebo run writes a complete bag
+   file (ros2 bag record -a) AND a structured CSV/JSON of computed
+   metrics. Bag files go to `workspaces/<run-id>/bag/`. Metrics go to
+   `workspaces/<run-id>/metrics.json`. Both committed to long-term
+   storage (not just git — see VALIDATION_PLAN.md storage section).
+
+7. **Expected-outcome explicit in phase spec.** Each phase spec must
+   include "what happens if measurement contradicts paper claim?"
+   This is not pessimism — Phase 3 specifically expects to discover
+   that the conservative GDOP bound (1+0.15)^k is not the physical
+   reality (physical decay likely ~√k). Plan the response (paper
+   erratum, v10 update with conservative bound retained as worst-case)
+   BEFORE running the experiment.
+
+## Stack lock
+
+| Component | Version | Why |
+|---|---|---|
+| Ubuntu | 24.04 Noble | Already installed; required for Jazzy |
+| ROS2 | Jazzy Jalisco | LTS until May 2029; native to Ubuntu 24.04 |
+| Gazebo Sim | Harmonic v8.x | LTS; default pairing with Jazzy; already installed |
+| PX4 Autopilot | main (>= v1.15) | Native Gazebo Harmonic support |
+| uXRCE-DDS Agent | latest | PX4 ↔ ROS2 bridge (replaces older mavros) |
+| GTSAM | 4.2+ | Factor graph backend for CEP measurement |
+| Python | 3.12 (Jazzy default) | ROS2 Python nodes; analysis scripts |
+
+Do NOT swap any of these without updating both this file and
+`VALIDATION_PLAN.md` stack section.
+
+## Phase status
+
+- [ ] Phase 0 — Infrastructure (headless, local) — **next**
+- [ ] Phase 1 — PoO FAR/FRR (GPU vast.ai) — highest risk, blocks 2/3
+- [ ] Phase 2 — Reputation → exclusion (GPU vast.ai)
+- [ ] Phase 3 — CEP vs hops + relay refit (GPU vast.ai) — subsumes naive M1
+- [ ] Phase 4 — Failover timing (headless, parallel to GPU work)
+- [ ] Phase 5 — GNSS spoofing reaction (headless, parallel)
+- [ ] Phase 6 — Progressive attrition + load balancing (mixed two-tier)
+- [ ] Phase 7 — Ablation (integration)
+- [ ] Phase 8 — SwarmRaft baseline comparison
+
+## When in doubt
+
+- **Before starting a phase** → read `docs/VALIDATION_PLAN.md` phase
+  section in full. Pass criteria + don't-do list + expected outcome.
+- **Before any GPU rental** → check `docs/cost-budget.md` for current
+  vast.ai spend and remaining budget.
+- **Before any code that processes camera images** → confirm phase
+  hardware target is GPU. If on local CPU, stop.
+- **Anything not in VALIDATION_PLAN.md** → ask the user, do not improvise.

@@ -1,0 +1,42 @@
+# ROS2 build artifacts
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
+
+# PX4 build artifacts (when cloned as submodule or sibling)
+PX4-Autopilot/build/
+PX4-Autopilot/Tools/setup/__pycache__/
+
+# Gazebo runtime logs
+.gazebo/
+.gz/
+.ignition/
+
+# Large datasets — staged manually, not version-controlled
+datasets/raw/
+datasets/staged/
+datasets/*.tif
+datasets/*.jp2
+datasets/*.SAFE/
+
+# Per-run workspaces (bags + metrics) — long-term storage handled separately
+workspaces/*
+!workspaces/.gitkeep
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# OS / editor noise
+.DS_Store
+.idea/
+.vscode/
+*.swp
