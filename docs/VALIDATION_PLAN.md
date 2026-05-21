@@ -140,13 +140,13 @@ Complete all of these before starting Phase 0. Cost: free, ~half-day.
 
 | Check | What | Why |
 |---|---|---|
-| **PF-1** ✅ | Confirm SwarmRaft open-source reference availability — DONE 2026-05-21, see `docs/preflight/pf-1-swarmraft.md`. Reference exists (Skoltech repos, arXiv 2508.00622), but is pure Python Monte Carlo, not Gazebo/ROS2. Phase 8 revised: ~3-7 days ROS2 wrapping, not +2 wk reimplementation. License is undeclared on the repos — author contact required before vendoring. | Phase 8 scope known. |
-| **PF-2** | Create Copernicus Open Access account (free); confirm Sentinel-2 download API works | Phase 0 dataset staging blocks otherwise |
-| **PF-3** | Create vast.ai account, top up with $50 starter | Phase 1 GPU work blocks otherwise |
-| **PF-4** | Confirm paper v9_8 PDF is locked reference (vN.M and date); store local copy under `docs/reference/` | Avoid drift if paper revisions land |
-| **PF-5** | Lock PoO algorithm spec — write `docs/poo-algorithm-spec.md` answering: keypoint detector? descriptor? matcher? VERIFIED threshold function? satellite reference image acquisition? | Phase 1 cannot start with these open |
-| **PF-6** | Cost-tracking spreadsheet (or `docs/cost-budget.md`) with running spend per phase | Required by Hard Rule 6 (CLAUDE.md analog from sakana-lab) |
-| **PF-7** | Build both Docker images (`uav-lab:cpu`, `uav-lab:gpu`); push GPU image to registry; smoke-test `docker compose --profile cpu run --rm dev` opens a shell with ROS2 + Gazebo working | Phase 0 first item depends on this; also gates local-to-rental migration path |
+| **PF-1** ✅ | SwarmRaft reference exists (Skoltech, arXiv 2508.00622). Pure Python Monte Carlo — not Gazebo/ROS2. Phase 8 revised: ~3-7 days ROS2 wrapping, not +2 wk reimplementation. License undeclared on the repos; author contact required before vendoring. See `docs/preflight/pf-1-swarmraft.md`. | Phase 8 scope known. |
+| **PF-2** ⏳ | Copernicus Data Space Ecosystem account — user-driven signup at https://dataspace.copernicus.eu. Credentials go into `.env` (template at `.env.example`). See `docs/preflight/pf-2-copernicus.md`. | Phase 0 dataset staging blocks. |
+| **PF-3** ⏸ | vast.ai account + deposit — **DEFERRED** by user decision (2026-05-21) until GPU image and first GPU experiment are ready (closer to Phase 1 start). Phase 0/4/5 do not block on this. | Phase 1 GPU work blocks. |
+| **PF-4** ✅ | v9_8 PDF + tex copied to `docs/reference/` as frozen reference (from `audit-harness/inputs/papers/`). | Avoid drift if paper revisions land. |
+| **PF-5** | Lock PoO algorithm spec — write `docs/poo-algorithm-spec.md` answering: keypoint detector? descriptor? matcher? VERIFIED threshold function? satellite reference image acquisition? | Phase 1 cannot start with these open. |
+| **PF-6** ✅ | Cost-tracking landed at `docs/cost-budget.md` ($500 cumulative cap, ~30% over $395 upper estimate). | Required by Hard Rule 6. |
+| **PF-7** 🟡 | Both Docker images build; push GPU to registry. CPU build kicked off, fixed uXRCE-DDS Agent install (source-build, not apt). Re-running in background. | Phase 0 first item depends on this. |
 
 ---
 
