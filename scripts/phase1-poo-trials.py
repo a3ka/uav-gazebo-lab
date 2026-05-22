@@ -165,6 +165,12 @@ def main() -> int:
     ap.add_argument('--lowe-tau', type=float, default=0.7)
     ap.add_argument('--t-verify', type=float, default=0.3, help='VERIFIED threshold')
     ap.add_argument('--seed', type=int, default=42)
+    ap.add_argument('--sun-shifts', type=str, default='-30,0,30',
+                    help='Comma-separated brightness shifts in [-255, 255]')
+    ap.add_argument('--blur-sigmas', type=str, default='0,2',
+                    help='Comma-separated gaussian-blur stddevs (px)')
+    ap.add_argument('--occl-fracs', type=str, default='0,0.10',
+                    help='Comma-separated occlusion fractions in [0, 1]')
     args = ap.parse_args()
 
     dataset_dir = Path(args.dataset)
@@ -184,10 +190,10 @@ def main() -> int:
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Sweep grid -- 3 sun angles x 2 blur levels x 2 occlusion levels
-    sun_grid = [-30.0, 0.0, +30.0]
-    blur_grid = [0.0, 2.0]
-    occl_grid = [0.0, 0.10]
+    # Sweep grid (CLI-overrideable)
+    sun_grid = [float(x) for x in args.sun_shifts.split(',')]
+    blur_grid = [float(x) for x in args.blur_sigmas.split(',')]
+    occl_grid = [float(x) for x in args.occl_fracs.split(',')]
 
     print(f'[trials] honest={args.n_honest} byzantine={args.n_byzantine}')
     print(f'[sweep]  {len(sun_grid)}x{len(blur_grid)}x{len(occl_grid)} = '

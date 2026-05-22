@@ -156,8 +156,15 @@ RUN python3 -m pip install --break-system-packages --no-cache-dir \
 # Vision stack — PyTorch (CUDA 12.4) + SuperPoint/LightGlue
 # Pinned to versions known to work with PoO pipeline (PF-5 spec).
 # ─────────────────────────────────────────────────────────────────────────
+# cu118 wheels chosen for broadest driver compatibility. They run on
+# any NVIDIA driver supporting CUDA 11.8+ (which is essentially every
+# datacenter / consumer GPU driver from 2023 onward). Originally pinned
+# to cu124 to match the base image, but a vast.ai host with driver
+# reporting only CUDA 12.0 (despite cuda_max_good>=12.6 advertisement)
+# rejected the cu124 wheels at runtime. cu118 sidesteps that whole
+# class of "host driver claims newer than it is" problems.
 RUN python3 -m pip install --break-system-packages --no-cache-dir \
-        --index-url https://download.pytorch.org/whl/cu124 \
+        --index-url https://download.pytorch.org/whl/cu118 \
         torch==2.5.1 torchvision==0.20.1
 RUN python3 -m pip install --break-system-packages --no-cache-dir \
         numpy \
@@ -175,13 +182,16 @@ RUN python3 -m pip install --break-system-packages --no-cache-dir \
 # uses Lowe ratio (paper-faithful), not the LightGlue matcher.
 # Pin to main; once Phase 1 baseline is locked we'll record the
 # resolved commit hash here for reproducibility.
-# `--ignore-installed numpy` skips the conflict with apt-shipped numpy:
-# LightGlue's deps spec wants to bump numpy, but the apt package has no
-# pip RECORD file so pip's uninstall step fails. Ignoring it lets pip
-# install a parallel newer version which Python's import resolves
-# against site-packages first.
+#
+# --no-deps: don't let pip pull LightGlue's dependency closure
+# (torch, kornia, opencv, numpy). All four already installed above at
+# the versions we want. Without --no-deps + --ignore-installed, pip
+# fetched torch 2.12+cu130 from default PyPI -- silently overwrote our
+# cu118 pin and broke the image on hosts with cu118-compatible drivers.
+# With --no-deps the runtime stack stays exactly as the cu118 layer
+# left it.
 RUN python3 -m pip install --break-system-packages --no-cache-dir \
-        --ignore-installed \
+        --no-deps \
         'git+https://github.com/cvg/LightGlue.git@main'
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -207,10 +217,22 @@ RUN if getent passwd $USER_UID >/dev/null; then \
 # for rationale).
 RUN git config --system --add safe.directory '*'
 
-USER $USERNAME
-WORKDIR /workspace/uav-gazebo-lab
+# Source ROS2 for both root and lab shells so interactive use works
+# regardless of which user vast.ai (root) or docker compose (lab) runs as.
+RUN for HOME_DIR in /root /home/$USERNAME; do \
+        echo "source /opt/ros/jazzy/setup.bash" >> "$HOME_DIR/.bashrc"; \
+        echo "[ -f /workspace/ros2_ws/install/setup.bash ] && source /workspace/ros2_ws/install/setup.bash" >> "$HOME_DIR/.bashrc"; \
+    done && chown $USERNAME:$USERNAME /home/$USERNAME/.bashrc
 
-RUN echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc \
-    && echo "[ -f /workspace/ros2_ws/install/setup.bash ] && source /workspace/ros2_ws/install/setup.bash" >> ~/.bashrc
+# Stay as root by default. vast.ai's SSH wrapper expects root to inject
+# its sshd / authorize keys / etc. For local development via
+# docker-compose we override with `user: ${HOST_UID}:${HOST_GID}` to get
+# bind-mount file ownership right.
+USER root
+WORKDIR /workspace
 
-CMD ["/bin/bash"]
+# Long-running CMD so the container stays alive while vast.ai's
+# orchestrator injects its SSH server via docker exec. /bin/bash alone
+# exits immediately without a TTY, which produces
+# "No such container" on the next vast.ai control command.
+CMD ["sleep", "infinity"]

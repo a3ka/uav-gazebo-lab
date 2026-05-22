@@ -174,11 +174,20 @@ RUN if getent passwd $USER_UID >/dev/null; then \
 # differs. System-wide config so it applies to root + lab.
 RUN git config --system --add safe.directory '*'
 
-USER $USERNAME
-WORKDIR /workspace/uav-gazebo-lab
+# Auto-source ROS2 in both root and lab login shells (vast.ai runs as
+# root; docker-compose can run as lab via user: override).
+RUN for HOME_DIR in /root /home/$USERNAME; do \
+        echo "source /opt/ros/jazzy/setup.bash" >> "$HOME_DIR/.bashrc"; \
+        echo "[ -f /workspace/ros2_ws/install/setup.bash ] && source /workspace/ros2_ws/install/setup.bash" >> "$HOME_DIR/.bashrc"; \
+    done && chown $USERNAME:$USERNAME /home/$USERNAME/.bashrc
 
-# Auto-source ROS2 on shell entry
-RUN echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc \
-    && echo "[ -f /workspace/ros2_ws/install/setup.bash ] && source /workspace/ros2_ws/install/setup.bash" >> ~/.bashrc
+# Stay as root by default so vast.ai can inject its SSH wrapper. Local
+# docker-compose flows override via `user: ${HOST_UID}:${HOST_GID}` for
+# bind-mount file ownership.
+USER root
+WORKDIR /workspace
 
-CMD ["/bin/bash"]
+# Long-running CMD so the container stays alive while orchestrators
+# (vast.ai, compose) attach via exec. Bare /bin/bash exits immediately
+# without a TTY, producing "No such container" on the next control op.
+CMD ["sleep", "infinity"]
