@@ -169,10 +169,20 @@ RUN python3 -m pip install --break-system-packages --no-cache-dir \
         rasterio \
         opencv-python-headless \
         kornia
-# LightGlue is not on PyPI; install only if Phase 1 sensitivity sweep
-# actually exercises it (paper spec uses Lowe ratio matcher, not
-# LightGlue). To add later:
-#   pip install git+https://github.com/cvg/LightGlue.git@<commit>
+# SuperPoint extractor lives in cvg/LightGlue (kornia 0.8.x removed
+# its bundled SuperPoint). We install LightGlue from git for the
+# extractor module; the matcher path is independent -- Phase 1 spec
+# uses Lowe ratio (paper-faithful), not the LightGlue matcher.
+# Pin to main; once Phase 1 baseline is locked we'll record the
+# resolved commit hash here for reproducibility.
+# `--ignore-installed numpy` skips the conflict with apt-shipped numpy:
+# LightGlue's deps spec wants to bump numpy, but the apt package has no
+# pip RECORD file so pip's uninstall step fails. Ignoring it lets pip
+# install a parallel newer version which Python's import resolves
+# against site-packages first.
+RUN python3 -m pip install --break-system-packages --no-cache-dir \
+        --ignore-installed \
+        'git+https://github.com/cvg/LightGlue.git@main'
 
 # ─────────────────────────────────────────────────────────────────────────
 # Non-root user (matches Dockerfile.cpu so volume permissions align).
