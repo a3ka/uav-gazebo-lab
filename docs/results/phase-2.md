@@ -4,6 +4,19 @@
 **Hardware actual:** vast.ai RTX 3090, ~2.7 hr wall time
 **Cost actual:** ~$0.80
 **Trials:** 30 per the 6-cell sweep (5 trials per cell)
+
+### Reproducibility
+
+| Artefact | Pin |
+|---|---|
+| Docker image | `ghcr.io/a3ka/uav-lab:gpu` digest `sha256:a1c5484f749cf37ddef0a70433c131e251c4ee07423de7ad07c86d8529cbe080` |
+| Git commit at campaign start | `b675a91` (Phase 2 batch campaign script landed) + patched M=7 cells locally on instance to `"7 3 10 3"` / `"7 4 10 4"` (committed in commit captured by docs/results/phase-2.md decision register) |
+| Dataset | Zurich Z16 PNG tiles (32 files, ~11 MB) -- sibling project `einhard-runtime/runtime/navigation/tiles/zurich-z16` |
+| Raw data | `workspaces/phase2-batch/*.exclusions.csv` (30 files) + `*.rep_events.csv` (30 files) + `workspaces/phase2-batch{,-m7}.log` (per-trial console summary) -- gitignored, ~5 MB local |
+| PoO config | locked at Phase 1 paper-spec: SuperPoint v1 (MagicLeap weights via LightGlue), N=50 top keypoints, K=20 Mode A descriptors, Lowe ratio τ=0.7, T_verify=0.30 |
+| Reputation config | paper IV-C defaults: α_pos=0.05, α_neg=0.15, α_sig=0.30, α_range=0.10, λ=10⁻³ s⁻¹, R_init=0.5, T_reject=0.20, T_quorum=0.60 |
+| Verify interval | `publish_period_s=45` (paper ν_verify⁻¹) |
+| Trial duration | 300 s (60 s steady-state + 240 s window) |
 **Hardware:** vast.ai RTX 3090/4090 + Zurich Z16 dataset
 **Estimated cost:** $1-5 for 6-cell × 5-trial baseline campaign
 **Spec source:** `docs/phase-2-spec.md`
