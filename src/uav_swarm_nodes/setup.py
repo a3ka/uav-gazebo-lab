@@ -29,6 +29,7 @@ setup(
             # Phase 2 reputation -> exclusion loop
             'verifier_node = uav_swarm_nodes.verifier_node:main',
             'reputation_manager_node = uav_swarm_nodes.reputation_manager_node:main',
+            'quorum_exclusion_node = uav_swarm_nodes.quorum_exclusion_node:main',
         ],
     },
 )

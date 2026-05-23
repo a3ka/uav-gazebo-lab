@@ -101,11 +101,19 @@ class ReputationManagerNode(Node):
             ReputationUpdate, '/reputation/update', self._on_update, 10
         )
 
-        # Per-peer view publishers (lazy)
+        # Per-peer view publishers (lazy) + broadcast channel for downstream
+        # quorum_exclusion_node (avoids O(N^2) per-peer subscriptions).
         self._view_pubs: dict[int, rclpy.publisher.Publisher] = {}
-        # Own DistilledState publisher
+        self.pub_view_broadcast = self.create_publisher(
+            PeerReputationView, '/reputation/view', 10
+        )
+        # Own DistilledState publisher: per-UAV topic (compat with Phase 4
+        # failover) + broadcast topic (for quorum aggregation).
         self.pub_state = self.create_publisher(
             DistilledState, f'/anchor{self.uav_id}/distilled_state', 10
+        )
+        self.pub_state_broadcast = self.create_publisher(
+            DistilledState, '/distilled_state', 10
         )
 
         # Periodic broadcasts
@@ -180,6 +188,7 @@ class ReputationManagerNode(Node):
         msg.uav_id = self.uav_id
         # signature_ed25519 left zero (paper assumed; Phase 2 mocks crypto)
         self.pub_state.publish(msg)
+        self.pub_state_broadcast.publish(msg)
 
     def _broadcast_views(self) -> None:
         now_us = int(time.time() * 1_000_000)
@@ -193,6 +202,7 @@ class ReputationManagerNode(Node):
             v.target_id = pid
             v.r_value = float(r)
             pub.publish(v)
+            self.pub_view_broadcast.publish(v)
 
     def _view_pub_for(self, target_id: int) -> rclpy.publisher.Publisher:
         if target_id not in self._view_pubs:
