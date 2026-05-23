@@ -49,6 +49,14 @@ workspaces/phase4-prod/*
 !workspaces/phase4-prod/switching_distributions.png
 !workspaces/phase4-prod/results.csv
 
+# Phase 5 production sweep artefacts (~52 KB total)
+!workspaces/phase5-prod/
+workspaces/phase5-prod/*
+!workspaces/phase5-prod/manifest.json
+!workspaces/phase5-prod/analysis.json
+!workspaces/phase5-prod/detect_dist.png
+!workspaces/phase5-prod/results.csv
+
 # Secrets
 .env
 .env.*

@@ -1,0 +1,21 @@
+{
+  "run_id": "phase5-prod",
+  "phase": 5,
+  "trials": 30,
+  "seed_base": 1000000,
+  "n_uavs": 20,
+  "n_spoofed": 2,
+  "region_m": 200.0,
+  "t_steady_s": 4.0,
+  "t_observe_s": 8.0,
+  "window_s": 3.0,
+  "m_suspect": 3,
+  "spoof_offset_m": 120.0,
+  "t_spoof_m": 20.0,
+  "t_pass_budget_s": 5.0,
+  "jobs": 2,
+  "started_at": "2026-05-23T21:44:15Z",
+  "completed": 30,
+  "finished_at": "2026-05-23T21:47:23Z",
+  "wall_time_s": 187.7
+}

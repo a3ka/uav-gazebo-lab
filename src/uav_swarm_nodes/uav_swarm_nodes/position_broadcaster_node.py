@@ -20,6 +20,11 @@ Parameters:
                                             with radius=0 this is the static
                                             ground-truth position. Phase 3 batch
                                             sweeps use radius=0 + center=[x,y].
+  spoof_offset  (float[3]) default [0,0,0] -- ADDED to the published noisy_pose
+                                            after noise injection. Used by
+                                            Phase 5 to inject GNSS spoofing
+                                            without touching ground truth.
+                                            Set at runtime via `ros2 param set`.
 """
 
 import math
@@ -43,6 +48,7 @@ class PositionBroadcasterNode(Node):
         self.declare_parameter('radius', 10.0)
         self.declare_parameter('altitude', 50.0)
         self.declare_parameter('center', [0.0, 0.0])
+        self.declare_parameter('spoof_offset', [0.0, 0.0, 0.0])
 
         self.uav_id = int(self.get_parameter('uav_id').value)
         self.rate = float(self.get_parameter('publish_rate').value)
@@ -52,9 +58,21 @@ class PositionBroadcasterNode(Node):
         self.altitude = float(self.get_parameter('altitude').value)
         c = self.get_parameter('center').value
         self.center = (float(c[0]), float(c[1]))
+        so = self.get_parameter('spoof_offset').value
+        self.spoof_offset = [float(so[0]), float(so[1]), float(so[2])]
+        # Runtime param update for spoof injection (`ros2 param set`)
+        self.add_on_set_parameters_callback(self._on_param)
 
         topic = f'/uav{self.uav_id}/noisy_pose'
         self.pub = self.create_publisher(NoisyPose, topic, 10)
+        # Separate clean ground-truth channel. UWB simulators must use
+        # THIS topic for distance computation -- using noisy_pose would
+        # let a GNSS spoof (spoof_offset) feed through to "measured"
+        # UWB range, masking the spoof from any cross-verification
+        # detector (Phase 5 Pillar 5).
+        self.pub_gt = self.create_publisher(
+            NoisyPose, f'/uav{self.uav_id}/ground_truth', 10
+        )
         self.t0 = time.monotonic()
         self.timer = self.create_timer(1.0 / self.rate, self._tick)
 
@@ -74,11 +92,35 @@ class PositionBroadcasterNode(Node):
         msg = NoisyPose()
         msg.timestamp = int(time.time() * 1_000_000)
         msg.uav_id = self.uav_id
-        msg.position.x = x_gt + random.gauss(0.0, self.sigma_inject)
-        msg.position.y = y_gt + random.gauss(0.0, self.sigma_inject)
-        msg.position.z = z_gt + random.gauss(0.0, self.sigma_inject)
+        msg.position.x = x_gt + random.gauss(0.0, self.sigma_inject) + self.spoof_offset[0]
+        msg.position.y = y_gt + random.gauss(0.0, self.sigma_inject) + self.spoof_offset[1]
+        msg.position.z = z_gt + random.gauss(0.0, self.sigma_inject) + self.spoof_offset[2]
         msg.sigma = self.sigma_report
         self.pub.publish(msg)
+
+        # Clean ground truth (no noise, no spoof) -- for UWB sim
+        gt_msg = NoisyPose()
+        gt_msg.timestamp = msg.timestamp
+        gt_msg.uav_id = self.uav_id
+        gt_msg.position.x = x_gt
+        gt_msg.position.y = y_gt
+        gt_msg.position.z = z_gt
+        gt_msg.sigma = 0.0
+        self.pub_gt.publish(gt_msg)
+
+    def _on_param(self, params):
+        from rcl_interfaces.msg import SetParametersResult
+        for p in params:
+            if p.name == 'spoof_offset':
+                v = list(p.value)
+                if len(v) != 3:
+                    return SetParametersResult(
+                        successful=False, reason='spoof_offset must be float[3]')
+                self.spoof_offset = [float(v[0]), float(v[1]), float(v[2])]
+                self.get_logger().info(
+                    f'spoof_offset set -> [{v[0]:.1f}, {v[1]:.1f}, {v[2]:.1f}]'
+                )
+        return SetParametersResult(successful=True)
 
 
 def main(args=None) -> None:

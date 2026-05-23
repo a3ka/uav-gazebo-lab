@@ -1,0 +1,23 @@
+{
+  "csv": "workspaces/phase5-prod/results.csv",
+  "summary": {
+    "n_trials": 30,
+    "n_victims": 60,
+    "n_detected": 59,
+    "detection_rate_per_victim": 0.9833,
+    "n_trials_passed": 29,
+    "trial_pass_rate": 0.9667,
+    "n_trials_with_fp": 0,
+    "total_fp": 0,
+    "mean_fp_per_trial": 0.0,
+    "t_detect_median_s": 0.2018,
+    "t_detect_p95_s": 0.5979,
+    "t_detect_p99_s": 0.5984,
+    "t_detect_mean_s": 0.2637,
+    "t_detect_std_s": 0.1251,
+    "t_detect_min_s": 0.196,
+    "t_detect_max_s": 0.5989,
+    "mean_n_uavs": 20.0,
+    "mean_n_edges": 88.8
+  }
+}

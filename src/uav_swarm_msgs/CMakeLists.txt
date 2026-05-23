@@ -26,6 +26,8 @@ set(msg_files
   msg/UwbRangeMeasurement.msg
   msg/EstimatedPose.msg
   msg/TrnAbsoluteFix.msg
+  # GNSS spoofing alert (paper Pillar 5, Phase 5)
+  msg/SpoofAlert.msg
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}

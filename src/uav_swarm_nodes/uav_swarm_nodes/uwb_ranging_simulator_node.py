@@ -54,11 +54,16 @@ class UwbRangingSimulatorNode(Node):
         self.pose_a = None
         self.pose_b = None
 
+        # Use the GROUND TRUTH channel, NOT /noisy_pose. UWB measures
+        # true inter-UAV distance independent of GNSS; subscribing to
+        # noisy_pose would let a GNSS spoof flow through to "measured"
+        # ranges and mask the spoof from any cross-verification
+        # detector (Phase 5).
         self.sub_a = self.create_subscription(
-            NoisyPose, f'/uav{self.id_a}/noisy_pose', self._cb_a, 10
+            NoisyPose, f'/uav{self.id_a}/ground_truth', self._cb_a, 10
         )
         self.sub_b = self.create_subscription(
-            NoisyPose, f'/uav{self.id_b}/noisy_pose', self._cb_b, 10
+            NoisyPose, f'/uav{self.id_b}/ground_truth', self._cb_b, 10
         )
         legacy_topic = f'/uwb/range_{self.id_a}_{self.id_b}'
         self.pub_legacy = self.create_publisher(Float32, legacy_topic, 10)
