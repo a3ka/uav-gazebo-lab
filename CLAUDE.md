@@ -121,7 +121,7 @@ Do NOT swap any of these without updating both this file and
 - [ ] Phase 0 — Infrastructure (headless, local) — **next**
 - [ ] Phase 1 — PoO FAR/FRR (GPU vast.ai) — highest risk, blocks 2/3
 - [ ] Phase 2 — Reputation → exclusion (GPU vast.ai)
-- [ ] Phase 3 — CEP vs hops + relay refit (GPU vast.ai) — subsumes naive M1
+- [🟡] Phase 3 — CEP vs hops + relay refit (CPU, formerly GPU; TRN mocked so vision is out-of-scope until Phase 6+) — dev complete 2026-05-23, production sweep pending
 - [ ] Phase 4 — Failover timing (headless, parallel to GPU work)
 - [ ] Phase 5 — GNSS spoofing reaction (headless, parallel)
 - [ ] Phase 6 — Progressive attrition + load balancing (mixed two-tier)

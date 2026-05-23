@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
-# Vast.ai instance one-shot bootstrap for Phase 1 / 2 GPU campaigns.
+# Vast.ai instance one-shot bootstrap for Phase 1 / 2 / 3 campaigns.
+#
+# Phase 1 + 2 require GPU (SuperPoint + PoO match). Phase 3 is CPU-only
+# (TRN is mocked, no vision pipeline) and runs on either the :cpu or
+# :gpu image; for the production sweep, rent a high-core-count CPU
+# instance (e.g. 16 cores) and use --jobs to parallelise trials.
 #
 # Run from INSIDE the vast.ai instance after SSH'ing in. Assumes the
 # image is ghcr.io/a3ka/uav-lab:gpu (public). On first run it:
@@ -89,9 +94,10 @@ PYEOF
 echo ""
 echo "=== bootstrap complete ==="
 echo ""
-echo "Next: run a Phase 2 production campaign, e.g."
-echo "  python3 scripts/phase2-scenario-runner.py \\"
-echo "    --n-honest 5 --n-byzantine 2 --m-quorum 3 \\"
-echo "    --duration-s 300 --output workspaces/phase2-m3f2-trial0.csv"
+echo "Next: run a production campaign."
 echo ""
-echo "Or run several cells in batch (see docs/results/phase-2.md plan)."
+echo "Phase 2 (M-quorum sweep, ~2.5 hr GPU):"
+echo "  bash scripts/phase2-batch-campaign.sh"
+echo ""
+echo "Phase 3 (CEP-vs-hops, ~3.5 hr CPU at jobs=4, no GPU needed):"
+echo "  JOBS=4 bash scripts/phase3-batch-campaign.sh"
