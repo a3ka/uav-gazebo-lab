@@ -35,8 +35,8 @@ from uav_swarm_msgs.msg import NoisyPose, TrnAbsoluteFix
 
 
 class TrnAnchorNode(Node):
-    def __init__(self) -> None:
-        super().__init__('trn_anchor_node')
+    def __init__(self, node_name: str = 'trn_anchor_node', **kwargs) -> None:
+        super().__init__(node_name, **kwargs)
 
         self.declare_parameter('uav_id', 0)
         self.declare_parameter('initial_position', [0.0, 0.0, 50.0])

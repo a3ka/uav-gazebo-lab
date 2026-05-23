@@ -33,8 +33,8 @@ from uav_swarm_msgs.msg import NoisyPose
 
 
 class PositionBroadcasterNode(Node):
-    def __init__(self) -> None:
-        super().__init__('position_broadcaster_node')
+    def __init__(self, node_name: str = 'position_broadcaster_node', **kwargs) -> None:
+        super().__init__(node_name, **kwargs)
 
         self.declare_parameter('uav_id', 0)
         self.declare_parameter('publish_rate', 10.0)

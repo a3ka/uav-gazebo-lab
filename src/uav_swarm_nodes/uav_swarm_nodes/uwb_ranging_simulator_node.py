@@ -31,8 +31,8 @@ from uav_swarm_msgs.msg import NoisyPose, UwbRangeMeasurement
 
 
 class UwbRangingSimulatorNode(Node):
-    def __init__(self) -> None:
-        super().__init__('uwb_ranging_simulator_node')
+    def __init__(self, node_name: str = 'uwb_ranging_simulator_node', **kwargs) -> None:
+        super().__init__(node_name, **kwargs)
 
         self.declare_parameter('uav_id_a', 0)
         self.declare_parameter('uav_id_b', 1)

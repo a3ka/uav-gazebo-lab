@@ -58,8 +58,8 @@ from uav_swarm_msgs.msg import (
 
 
 class FactorGraphNode(Node):
-    def __init__(self) -> None:
-        super().__init__('factor_graph_node')
+    def __init__(self, node_name: str = 'factor_graph_node', **kwargs) -> None:
+        super().__init__(node_name, **kwargs)
 
         self.declare_parameter('uav_id', 0)
         self.declare_parameter('is_anchor', False)
