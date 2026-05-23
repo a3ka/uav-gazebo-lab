@@ -69,6 +69,8 @@ class FactorGraphNode(Node):
         self.declare_parameter('reputation_eps', 0.01)
         self.declare_parameter('anchor_self_sigma', 1.0)
         self.declare_parameter('follower_self_sigma', 50.0)
+        self.declare_parameter('gossip_sigma_m', 30.0)
+        self.declare_parameter('gossip_min_interval_s', 0.05)
 
         self.uav_id = int(self.get_parameter('uav_id').value)
         self.is_anchor = bool(self.get_parameter('is_anchor').value)
@@ -79,6 +81,9 @@ class FactorGraphNode(Node):
         self.eps = float(self.get_parameter('reputation_eps').value)
         self.anchor_self_sigma = float(self.get_parameter('anchor_self_sigma').value)
         self.follower_self_sigma = float(self.get_parameter('follower_self_sigma').value)
+        self.gossip_sigma = float(self.get_parameter('gossip_sigma_m').value)
+        self.gossip_min_interval = float(self.get_parameter('gossip_min_interval_s').value)
+        self._last_peer_t: dict[int, float] = {}
 
         # Lazy GTSAM (so unit tests can spawn the node without gtsam)
         self._gtsam = None
@@ -91,10 +96,18 @@ class FactorGraphNode(Node):
         self.create_subscription(DistilledState, '/distilled_state', self._on_state, 20)
         self.create_subscription(UwbRangeMeasurement, '/uwb/range', self._on_range, 50)
         self.create_subscription(TrnAbsoluteFix, '/trn/fix', self._on_trn, 20)
+        # Federated peer-estimate gossip (paper IV-D DistilledState).
+        # Each factor_graph_node both broadcasts its own EstimatedPose
+        # to /estimate/swarm and consumes peers' estimates as
+        # PriorFactorPoint3 on the peer's key. Without this, followers
+        # at hop>=2 cannot learn relay positions (relays don't publish
+        # TRN) and their UWB factors against unknown peers are dropped.
+        self.create_subscription(EstimatedPose, '/estimate/swarm', self._on_peer, 50)
 
         self.pub_est = self.create_publisher(
             EstimatedPose, f'/estimate/u{self.uav_id}/pose', 10
         )
+        self.pub_swarm = self.create_publisher(EstimatedPose, '/estimate/swarm', 50)
 
         # 20 Hz update tick
         self.timer = self.create_timer(1.0 / rate, self._tick)
@@ -170,6 +183,32 @@ class FactorGraphNode(Node):
             g.RangeFactor3(sender, receiver, float(msg.range_m), noise)
         )
 
+    def _on_peer(self, msg: EstimatedPose) -> None:
+        """Federated peer-estimate gossip (paper IV-D).
+
+        ONE-SHOT bootstrap: the very first time we see a peer, init the
+        peer's key at the broadcast position and add a SINGLE wide
+        PriorFactorPoint3 to break the gauge. Subsequent broadcasts are
+        ignored -- the UWB range factors carry the actual position
+        constraint between peers, and accumulating priors at every 20Hz
+        broadcast collapses the effective sigma to sigma/sqrt(N) and
+        pins the peer key at its INITIAL (typically wrong) broadcast.
+        """
+        peer = int(msg.uav_id)
+        if peer == self.uav_id:
+            return
+        if peer in self.known_keys:
+            return
+        self._ensure_gtsam()
+        g = self._gtsam
+        pt = g.Point3(msg.position.x, msg.position.y, msg.position.z)
+        noise = g.noiseModel.Diagonal.Sigmas(
+            [self.gossip_sigma, self.gossip_sigma, self.gossip_sigma * 0.5]
+        )
+        self.pending_init.insert(peer, pt)
+        self.known_keys.add(peer)
+        self.pending_factors.add(g.PriorFactorPoint3(peer, pt, noise))
+
     def _on_trn(self, msg: TrnAbsoluteFix) -> None:
         """Anchor TRN fix -- adds a tight prior on the anchor's key."""
         self._ensure_gtsam()
@@ -221,6 +260,8 @@ class FactorGraphNode(Node):
             1 for k in self.known_keys if k != self.uav_id
         )
         self.pub_est.publish(est)
+        # Broadcast our own estimate to peers for federated estimation.
+        self.pub_swarm.publish(est)
 
 
 def main(args=None) -> None:

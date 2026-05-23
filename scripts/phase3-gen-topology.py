@@ -43,65 +43,67 @@ def generate_topology(
     M: int = 3,
     r_anchor_m: float = 20.0,
     r_comm_m: float = 100.0,
-    step_m: float = 80.0,
+    step_m: float = 60.0,
     altitude_m: float = 50.0,
     seed: int = 0,
 ) -> dict:
     """Build a single trial topology with the test follower at hop k.
 
-    The test follower is always the LAST entry in uavs[] (id = M + k).
+    Geometry: TRIANGULATED CHAIN. At each hop level i in 0..k, place M
+    UAVs on a small triangle of radius r_anchor_m centred at distance
+    i*step_m along a randomly-rotated chain direction. Level-0 is the
+    anchor cluster; levels 1..k are follower triangles.
+
+    Within-level pairs are <= 2*r_anchor_m apart (<< r_comm) so the
+    triangle is fully UWB-connected internally. Between-level pairs at
+    distance step_m are connected; level i vs i+2 are at 2*step_m
+    (selected so 2*step_m > r_comm — between-level-skip pairs are NOT
+    connected). This gives each UAV at level >=1 exactly M=3 UWB
+    neighbors at the previous level — enough for trilateration.
+
+    The test follower is the FIRST UAV in the final level (id = M*k).
     """
     if step_m >= r_comm_m:
         raise ValueError(f'step_m={step_m} must be < r_comm_m={r_comm_m}')
+    if 2 * step_m <= r_comm_m:
+        raise ValueError(
+            f'2*step_m={2*step_m} must be > r_comm_m={r_comm_m} so '
+            'level-skip pairs are not connected (hop count exact)'
+        )
     rng = random.Random(seed)
     uavs: list[dict] = []
-
-    # M anchors on a small circle around origin
-    for i in range(M):
-        angle = 2 * math.pi * i / M
-        x = r_anchor_m * math.cos(angle)
-        y = r_anchor_m * math.sin(angle)
-        uavs.append({
-            'id': i,
-            'role': 'anchor',
-            'position': [round(x, 3), round(y, 3), float(altitude_m)],
-            'hop_target': 0,
-        })
 
     # Chain direction: random unit vector in XY
     theta = rng.uniform(0.0, 2 * math.pi)
     dx, dy = math.cos(theta), math.sin(theta)
 
-    # For k>=1: place (k-1) relays + 1 test follower along the chain.
-    # For k=0: the "test follower" is just a 4th anchor co-placed nearby.
-    if k == 0:
-        # Add a single extra anchor as the test target so we can still
-        # measure CEP. Place it at a chain-step away from origin.
-        uavs.append({
-            'id': M,
-            'role': 'anchor',
-            'position': [
-                round(step_m * dx, 3),
-                round(step_m * dy, 3),
-                float(altitude_m),
-            ],
-            'hop_target': 0,
-        })
-    else:
-        for i in range(1, k + 1):
-            x = step_m * i * dx
-            y = step_m * i * dy
-            role = 'follower'
+    # Place a triangle of M UAVs at each level 0..k
+    for level in range(k + 1):
+        cx_l = level * step_m * dx
+        cy_l = level * step_m * dy
+        # Rotate within-level triangle by a per-level offset so neighbours
+        # across levels don't perfectly align (keeps the trilateration
+        # geometry well-conditioned).
+        phase = level * (math.pi / M)
+        for i in range(M):
+            angle = 2 * math.pi * i / M + phase
+            x = cx_l + r_anchor_m * math.cos(angle)
+            y = cy_l + r_anchor_m * math.sin(angle)
+            role = 'anchor' if level == 0 else 'follower'
             uavs.append({
-                'id': M + i - 1,
+                'id': level * M + i,
                 'role': role,
                 'position': [round(x, 3), round(y, 3), float(altitude_m)],
-                'hop_target': i,
+                'hop_target': level,
             })
 
     # Compute UWB edges: any pair within r_comm
     edges = _compute_edges(uavs, r_comm_m)
-    test_id = uavs[-1]['id']
+    # Test follower = first UAV in the final level
+    test_id = k * M if k > 0 else M  # k=0 -> id=M still works (extra anchor concept gone)
+    if k == 0:
+        # For k=0, test = an anchor itself. Use id=0 (any anchor works).
+        test_id = 0
     anchor_ids = [u['id'] for u in uavs if u['role'] == 'anchor']
     observed_hop = _bfs_min_hops(test_id, anchor_ids, edges, len(uavs))
 

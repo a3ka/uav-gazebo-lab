@@ -32,6 +32,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import random
 import statistics
 import sys
 import threading
@@ -134,17 +135,32 @@ def build_nodes(
             }),
         ))
 
+    # Follower init = truth + N(0, sigma_init_m). Mocks IMU pre-
+    # integration in a real deployment: short-duration flight gives a
+    # rough position estimate within a few metres of truth, NOT a
+    # blind (0,0,50) guess. Without this, every follower starts at
+    # the anchor centroid -- iSAM2 then has to relinearize across
+    # huge errors (~hundreds of metres at high hop counts) and gets
+    # stuck in local minima or hits range-factor Jacobian singularities
+    # when multiple keys co-locate. Phase 3 measures CEP propagation
+    # *given a reasonable starting belief* -- that is the realistic
+    # operating regime; Phase 6+ swaps the noise mock for true PX4
+    # IMU pre-integration.
+    init_rng = random.Random(int(topo.get('seed', 0)) * 7919 + 1)
+    sigma_init_m = 2.0
+
     # Factor graph -- one per UAV
     for u in topo['uavs']:
         x, y, z = u['position']
         is_anchor = u['role'] == 'anchor'
-        # Followers init at chain-cluster centroid offset (worst case
-        # ~step_m off truth) so iSAM2 has work to do. Anchors init at
-        # truth (TRN-mocked).
         if is_anchor:
             init = [float(x), float(y), float(z)]
         else:
-            init = [0.0, 0.0, float(z)]
+            init = [
+                float(x) + init_rng.gauss(0.0, sigma_init_m),
+                float(y) + init_rng.gauss(0.0, sigma_init_m),
+                float(z),
+            ]
         nodes.append(FactorGraphNode(
             node_name=f'fg_u{u["id"]}',
             parameter_overrides=_params({
