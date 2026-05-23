@@ -14,7 +14,12 @@ Parameters:
                                           sigma_base; falls back to a fixed
                                           value for Phase 0 smoke)
   radius        (float) default 10.0   -- metres, circle radius for synthetic gt
+                                          (set to 0 for a stationary point)
   altitude      (float) default 50.0   -- metres, fixed Z for synthetic gt
+  center        (float[2]) default [0,0]  -- XY origin of the synthetic motion;
+                                            with radius=0 this is the static
+                                            ground-truth position. Phase 3 batch
+                                            sweeps use radius=0 + center=[x,y].
 """
 
 import math
@@ -37,6 +42,7 @@ class PositionBroadcasterNode(Node):
         self.declare_parameter('sigma_report', 50.0)
         self.declare_parameter('radius', 10.0)
         self.declare_parameter('altitude', 50.0)
+        self.declare_parameter('center', [0.0, 0.0])
 
         self.uav_id = int(self.get_parameter('uav_id').value)
         self.rate = float(self.get_parameter('publish_rate').value)
@@ -44,6 +50,8 @@ class PositionBroadcasterNode(Node):
         self.sigma_report = float(self.get_parameter('sigma_report').value)
         self.radius = float(self.get_parameter('radius').value)
         self.altitude = float(self.get_parameter('altitude').value)
+        c = self.get_parameter('center').value
+        self.center = (float(c[0]), float(c[1]))
 
         topic = f'/uav{self.uav_id}/noisy_pose'
         self.pub = self.create_publisher(NoisyPose, topic, 10)
@@ -58,9 +66,9 @@ class PositionBroadcasterNode(Node):
 
     def _tick(self) -> None:
         t = time.monotonic() - self.t0
-        # Synthetic circular ground truth in the local frame
-        x_gt = self.radius * math.cos(t * 0.3)
-        y_gt = self.radius * math.sin(t * 0.3)
+        # Synthetic circular ground truth around `center`; radius=0 -> static.
+        x_gt = self.center[0] + self.radius * math.cos(t * 0.3)
+        y_gt = self.center[1] + self.radius * math.sin(t * 0.3)
         z_gt = self.altitude
 
         msg = NoisyPose()
