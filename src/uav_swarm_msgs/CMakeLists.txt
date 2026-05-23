@@ -25,6 +25,7 @@ set(msg_files
   # Factor graph + UWB ranging (paper Section IV-D, Phase 3)
   msg/UwbRangeMeasurement.msg
   msg/EstimatedPose.msg
+  msg/TrnAbsoluteFix.msg
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}

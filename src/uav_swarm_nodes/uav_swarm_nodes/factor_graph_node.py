@@ -52,6 +52,7 @@ from rclpy.node import Node
 from uav_swarm_msgs.msg import (
     DistilledState,
     EstimatedPose,
+    TrnAbsoluteFix,
     UwbRangeMeasurement,
 )
 
@@ -89,6 +90,7 @@ class FactorGraphNode(Node):
         # Subscriptions
         self.create_subscription(DistilledState, '/distilled_state', self._on_state, 20)
         self.create_subscription(UwbRangeMeasurement, '/uwb/range', self._on_range, 50)
+        self.create_subscription(TrnAbsoluteFix, '/trn/fix', self._on_trn, 20)
 
         self.pub_est = self.create_publisher(
             EstimatedPose, f'/estimate/u{self.uav_id}/pose', 10
@@ -167,6 +169,19 @@ class FactorGraphNode(Node):
         self.pending_factors.add(
             g.RangeFactor3(sender, receiver, float(msg.range_m), noise)
         )
+
+    def _on_trn(self, msg: TrnAbsoluteFix) -> None:
+        """Anchor TRN fix -- adds a tight prior on the anchor's key."""
+        self._ensure_gtsam()
+        anchor = int(msg.uav_id)
+        g = self._gtsam
+        pt = g.Point3(msg.position.x, msg.position.y, msg.position.z)
+        sigma = max(float(msg.sigma_m), 0.01)
+        noise = g.noiseModel.Diagonal.Sigmas([sigma, sigma, sigma * 0.5])
+        if anchor not in self.known_keys:
+            self.pending_init.insert(anchor, pt)
+            self.known_keys.add(anchor)
+        self.pending_factors.add(g.PriorFactorPoint3(anchor, pt, noise))
 
     # ─── periodic iSAM2 update ──────────────────────────────────────
 
