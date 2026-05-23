@@ -61,12 +61,19 @@ def run_one_trial(args_tuple) -> dict:
     seed = _trial_seed(k, trial, seed_base)
     topo_path = trials_dir / f'topo_k{k}_t{trial:04d}.json'
     metrics_path = trials_dir / f'metrics_k{k}_t{trial:04d}.json'
+    # Unique ROS_DOMAIN_ID per WORKER process (not per trial).
+    # Workers run trials sequentially -> sequential trials in the same
+    # worker share a domain (no DDS overlap since prior scenario exits
+    # before the next launches). Parallel workers get different domains
+    # so concurrent /uwb/range, /trn/fix etc. don't cross-talk.
+    env = os.environ.copy()
+    env['ROS_DOMAIN_ID'] = str((os.getpid() % 100) + 1)
     t0 = time.monotonic()
     # 1. topology
     subprocess.run(
         ['python3', str(GEN), '--k', str(k), '--seed', str(seed),
          '--out', str(topo_path), '--check'],
-        check=True, capture_output=True,
+        check=True, capture_output=True, env=env,
     )
     # 2. scenario
     subprocess.run(
@@ -77,7 +84,7 @@ def run_one_trial(args_tuple) -> dict:
          '--sigma-trn-m', str(sigma_trn_m),
          '--trn-period-s', str(trn_period_s),
          '--quiet'],
-        check=True, capture_output=True,
+        check=True, capture_output=True, env=env,
     )
     wall = time.monotonic() - t0
     m = json.loads(metrics_path.read_text())

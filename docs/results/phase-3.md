@@ -1,10 +1,22 @@
 # Phase 3 — CEP vs Hops + Relay σ_k Refit results
 
-**Status:** 🟡 DEV COMPLETE, production sweep PENDING (2026-05-23)
-**Hardware target:** CPU (no vision pipeline in this phase — TRN is mocked,
-see task 3.4 commit). Optional vast.ai CPU instance for parallel speedup.
-**Estimated cost:** $0 local, $1-5 if rented for ~4 hr parallel batch.
+**Status:** ✅ COMPLETE 2026-05-23 (production sweep run on local 16-core CPU, JOBS=8)
+**Hardware actual:** local CPU (no vision pipeline — TRN mocked per task 3.4)
+**Cost actual:** $0 (local box; no vast.ai needed for Phase 3)
+**Trials:** 1000 (k ∈ {0,1,2,3,5} × 200 trials)
+**Wall time:** 107 min (6446 s)
 **Spec source:** `docs/phase-3-spec.md`
+
+### Reproducibility
+
+| Artefact | Pin |
+|---|---|
+| Docker image | `uav-lab:cpu` (local build; reproducible from `docker/Dockerfile.cpu`) |
+| Git commit at sweep start | `59f0bcb` |
+| Sweep config | k=[0,1,2,3,5], trials/k=200, warmup=20s, trial=30s, σ_uwb=0.1m, σ_trn=5m, trn_period=10s (paper-faithful 0.1 Hz) |
+| Raw data | `workspaces/phase3-prod/{sweep.csv, manifest.json, analysis.json, cep_vs_hops.png}` |
+| Parallelism | ProcessPoolExecutor jobs=8; unique ROS_DOMAIN_ID per worker PID for DDS isolation |
+| Determinism | per-trial seed = seed_base + k * 100,000 + trial; manifest records seed_base=1,000,000 |
 
 This document follows the structure of `docs/results/phase-{1,2}.md` so
 the same template stays readable across phases. The architecture +
@@ -63,56 +75,68 @@ linear and exponential growth reliably. The **production sweep**
 
 ---
 
-## Production sweep — PENDING
+## Production sweep — RESULTS (n=1000, k ∈ {0,1,2,3,5} × 200 each)
 
-Plan (1000 trials, ~4 hr wall on a 16-core CPU instance or ~7-8 hr on a
-4-core local box):
-
-```
-scripts/phase3-batch-sweep.py \
-    --k-list 0 1 2 3 5 \
-    --trials-per-k 200 \
-    --warmup-s 20 --trial-s 30 \
-    --sigma-uwb-m 0.1 --sigma-trn-m 5.0 --trn-period-s 10.0 \
-    --run-id phase3-prod \
-    --jobs 4
-```
-
-Then:
+Launched 2026-05-23 17:49 UTC, completed 19:37 UTC.
 
 ```
-scripts/phase3-analyze.py \
-    --csv workspaces/phase3-prod/sweep.csv \
-    --out workspaces/phase3-prod/analysis.json \
-    --plot workspaces/phase3-prod/cep_vs_hops.png
+JOBS=8 bash scripts/phase3-batch-campaign.sh
 ```
 
-For vast.ai parallel runs, use `scripts/phase3-batch-campaign.sh`
-(thin wrapper that streams logs and resumes incomplete runs).
+### Per-cell results matrix
 
-### Per-cell results matrix (to be filled in)
+| k | n_trials | CEP_50 median (m) | CEP_50 mean (m) | std (m) | Q1 / Q3 (m) | Pass criterion |
+|---|---|---|---|---|---|---|
+| 0 | 200 | **0.466** | 0.495 | 0.23 | 0.32 / 0.62 | — (TRN-only baseline) |
+| 1 | 200 | **6.200** | 6.894 | 3.54 | 4.38 / 8.72 | — |
+| 2 | 200 | **7.723** | 8.486 | 4.91 | 5.10 / 10.87 | — |
+| 3 | 200 | **6.469** | 7.878 | 4.97 | 4.79 / 9.41 | ✅ **PASS** (paper IV-D: < 100 m) |
+| 5 | 200 | **5.254** | 5.565 | 2.78 | 4.03 / 6.61 | — |
 
-| k | n_trials | CEP_50 median (m) | CEP_50 mean (m) | std (m) | Pass criterion |
+Note that **CEP does not grow monotonically with k** under this
+triangulated topology (k=3 < k=2; k=5 < k=2). This is the most striking
+empirical finding of the sweep — see σ_k discussion below.
+
+### σ_k refit verdict (AIC, lower = better)
+
+| Rank | Model | Fit parameters | RSS | AIC | ΔAIC |
 |---|---|---|---|---|---|
-| 0 | 200 | _pending_ | _pending_ | _pending_ | — |
-| 1 | 200 | _pending_ | _pending_ | _pending_ | — |
-| 2 | 200 | _pending_ | _pending_ | _pending_ | — |
-| 3 | 200 | _pending_ | _pending_ | _pending_ | **< 100 m (paper IV-D)** |
-| 5 | 200 | _pending_ | _pending_ | _pending_ | — |
+| 🥇 | **sqrt-hops** | σ_0 = 3.03 m | 21.23 | **9.23** | 0.00 |
+| 🥈 | linear | a = 3.75, b = 0.67 | 24.80 | 12.01 | +2.78 |
+| 🥉 | GDOP (paper family) | σ_0 = 1.73, **δ = 0.42** | 59.06 | 16.34 | +7.11 |
 
-### σ_k refit verdict (to be filled in)
+**Paper-v10 action — ERRATUM REQUIRED:** Paper IV-D's "conservative
+GDOP" claim `σ_k ≤ σ_0 · (1 + 0.15)^k` is **doubly invalid** at the
+empirical scale tested here:
 
-| Model | Fit | AIC | ΔAIC vs best |
-|---|---|---|---|
-| Linear | _pending_ | _pending_ | _pending_ |
-| GDOP (paper) | _pending_ | _pending_ | _pending_ |
-| sqrt-hops | _pending_ | _pending_ | _pending_ |
+1. **Wrong δ.** When the GDOP family is forced as the fit model,
+   empirical δ = 0.42, not 0.15 — paper's "conservative" 15 % growth
+   per hop is actually nearly 3× too optimistic for the chosen sigmas
+   (σ_uwb=0.1 m, σ_trn=5 m, paper-faithful TRN period 10 s).
 
-**Paper-v10 action:** If GDOP δ ≠ 0.15 ± 0.05, an erratum is required.
-If sqrt-hops best, paper's conservative bound is RETAINED as
-worst-case but main-text formula updated to empirical fit.
-If linear best (likely on small n; reassess at production scale)
-the paper's exponential-growth framing needs revision.
+2. **Wrong family.** Even the corrected GDOP fits the data worse
+   (AIC=16.3) than the simpler sqrt-hops model (AIC=9.2) and the
+   linear model (AIC=12.0). Empirical data **plateau** around 5-8 m
+   regardless of hop count k>0 — exponential growth in k is not
+   observed at all.
+
+**Replacement formula for v10:**
+```
+CEP_50(k) ≈ 3.03 m · √(k + 1)            (1)
+```
+valid for densely-connected M=3 triangulated relay chains, σ_uwb=0.1 m,
+σ_trn=5 m, TRN period 10 s. Paper should retain the original GDOP
+formula as a hand-wave order-of-magnitude bound only, and quote (1)
+as the measured fit from this lab.
+
+**Honest scope caveat for v10:** the plateau / sub-monotone CEP is
+specific to the triangulated chain topology used here (M=3
+trilateration peers per level). A linear chain (1 relay per level)
+would give the original paper's monotone-growth behavior — see the
+dev-log mention of the original linear-chain prototype, which had
+test followers stuck on an unobservable sphere. The empirical CEP
+plateau is therefore a **topology-conditioned property**, not a
+universal disproof of the GDOP family.
 
 ---
 

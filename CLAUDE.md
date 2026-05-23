@@ -121,7 +121,7 @@ Do NOT swap any of these without updating both this file and
 - [ ] Phase 0 — Infrastructure (headless, local) — **next**
 - [ ] Phase 1 — PoO FAR/FRR (GPU vast.ai) — highest risk, blocks 2/3
 - [ ] Phase 2 — Reputation → exclusion (GPU vast.ai)
-- [🟡] Phase 3 — CEP vs hops + relay refit (CPU, formerly GPU; TRN mocked so vision is out-of-scope until Phase 6+) — dev complete 2026-05-23, production sweep pending
+- [x] Phase 3 — CEP vs hops + relay refit (CPU, TRN mocked) — COMPLETE 2026-05-23; 1000-trial sweep, CEP_50 at k=3 = 6.47m (PASS < 100m); paper GDOP formula superseded by `CEP(k) ≈ 3·√(k+1)` (sqrt-hops AIC=9.2 vs GDOP AIC=16.3)
 - [ ] Phase 4 — Failover timing (headless, parallel to GPU work)
 - [ ] Phase 5 — GNSS spoofing reaction (headless, parallel)
 - [ ] Phase 6 — Progressive attrition + load balancing (mixed two-tier)

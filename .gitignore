@@ -30,6 +30,15 @@ datasets/*.SAFE/
 workspaces/*
 !workspaces/.gitkeep
 
+# Phase 3 production sweep summary artefacts: small files (<100 KB each)
+# that are load-bearing for paper-v10 reproducibility. The 81 KB raw
+# sweep.csv stays gitignored (regenerate via the campaign script).
+!workspaces/phase3-prod/
+workspaces/phase3-prod/*
+!workspaces/phase3-prod/manifest.json
+!workspaces/phase3-prod/analysis.json
+!workspaces/phase3-prod/cep_vs_hops.png
+
 # Secrets
 .env
 .env.*
