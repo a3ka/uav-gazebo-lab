@@ -26,6 +26,8 @@ setup(
             # Phase 4 failover protocol
             'anchor_node = uav_swarm_nodes.anchor_node:main',
             'follower_node = uav_swarm_nodes.follower_node:main',
+            # Phase 2 reputation -> exclusion loop
+            'verifier_node = uav_swarm_nodes.verifier_node:main',
         ],
     },
 )
