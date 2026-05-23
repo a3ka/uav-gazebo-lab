@@ -31,6 +31,8 @@ setup(
             'reputation_manager_node = uav_swarm_nodes.reputation_manager_node:main',
             'quorum_exclusion_node = uav_swarm_nodes.quorum_exclusion_node:main',
             'signed_observation_publisher_node = uav_swarm_nodes.signed_observation_publisher_node:main',
+            # Phase 3 CEP + relay refit
+            'factor_graph_node = uav_swarm_nodes.factor_graph_node:main',
         ],
     },
 )
