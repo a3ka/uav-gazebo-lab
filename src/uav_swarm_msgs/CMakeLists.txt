@@ -19,6 +19,9 @@ set(msg_files
   msg/ReassignRequest.msg
   msg/ReassignOffer.msg
   msg/AttachAck.msg
+  # Reputation -> quorum exclusion (paper Section IV-C + IV-F end, Phase 2)
+  msg/PeerReputationView.msg
+  msg/ExclusionEvent.msg
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}
