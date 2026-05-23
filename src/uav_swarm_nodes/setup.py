@@ -30,6 +30,7 @@ setup(
             'verifier_node = uav_swarm_nodes.verifier_node:main',
             'reputation_manager_node = uav_swarm_nodes.reputation_manager_node:main',
             'quorum_exclusion_node = uav_swarm_nodes.quorum_exclusion_node:main',
+            'signed_observation_publisher_node = uav_swarm_nodes.signed_observation_publisher_node:main',
         ],
     },
 )
