@@ -1,0 +1,62 @@
+{
+  "csv": "workspaces/phase4-prod/results.csv",
+  "total_measurements": 1200,
+  "per_scenario": [
+    {
+      "scenario": "S1",
+      "n_total": 300,
+      "n_pass": 300,
+      "pass_rate": 1.0,
+      "pass_threshold_s": 15.0,
+      "switch_time_median": 6.0793,
+      "switch_time_p95": 6.1653,
+      "switch_time_p99": 6.193,
+      "switch_time_mean": 6.0782,
+      "switch_time_std": 0.0464,
+      "switch_time_min": 6.0039,
+      "switch_time_max": 6.2239
+    },
+    {
+      "scenario": "S2",
+      "n_total": 300,
+      "n_pass": 300,
+      "pass_rate": 1.0,
+      "pass_threshold_s": 15.0,
+      "switch_time_median": 6.0689,
+      "switch_time_p95": 6.1748,
+      "switch_time_p99": 6.2355,
+      "switch_time_mean": 6.0755,
+      "switch_time_std": 0.0523,
+      "switch_time_min": 6.003,
+      "switch_time_max": 6.2646
+    },
+    {
+      "scenario": "S3",
+      "n_total": 300,
+      "n_pass": 300,
+      "pass_rate": 1.0,
+      "pass_threshold_s": 15.0,
+      "switch_time_median": 6.0653,
+      "switch_time_p95": 6.1668,
+      "switch_time_p99": 6.2253,
+      "switch_time_mean": 6.0735,
+      "switch_time_std": 0.0515,
+      "switch_time_min": 6.0032,
+      "switch_time_max": 6.2713
+    },
+    {
+      "scenario": "S5",
+      "n_total": 300,
+      "n_pass": 300,
+      "pass_rate": 1.0,
+      "pass_threshold_s": 15.0,
+      "switch_time_median": 1.0299,
+      "switch_time_p95": 1.4125,
+      "switch_time_p99": 1.9357,
+      "switch_time_mean": 1.1037,
+      "switch_time_std": 0.1981,
+      "switch_time_min": 0.9225,
+      "switch_time_max": 2.1983
+    }
+  ]
+}

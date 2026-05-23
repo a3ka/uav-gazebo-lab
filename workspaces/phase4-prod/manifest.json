@@ -1,0 +1,23 @@
+{
+  "run_id": "phase4-prod",
+  "phase": 4,
+  "scenarios": [
+    "S1",
+    "S2",
+    "S3",
+    "S5"
+  ],
+  "trials_per_scenario": 30,
+  "n_anchors": 3,
+  "n_followers": 10,
+  "victim_anchor_id": 0,
+  "t_steady_s": 5.0,
+  "t_pass_budget_s": 10.0,
+  "t_timeout_s": 5.0,
+  "jobs": 4,
+  "total_trials": 120,
+  "started_at": "2026-05-23T20:15:50Z",
+  "completed": 120,
+  "finished_at": "2026-05-23T20:24:41Z",
+  "wall_time_s": 531.6
+}

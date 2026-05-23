@@ -41,6 +41,14 @@ workspaces/phase3-prod/*
 !workspaces/phase3-prod/cep_vs_hops.png
 !workspaces/phase3-prod/sweep.csv
 
+# Phase 4 production sweep artefacts (~117 KB total, all reproducibility-bearing)
+!workspaces/phase4-prod/
+workspaces/phase4-prod/*
+!workspaces/phase4-prod/manifest.json
+!workspaces/phase4-prod/analysis.json
+!workspaces/phase4-prod/switching_distributions.png
+!workspaces/phase4-prod/results.csv
+
 # Secrets
 .env
 .env.*

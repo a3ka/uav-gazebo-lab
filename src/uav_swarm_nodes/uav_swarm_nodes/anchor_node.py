@@ -145,12 +145,21 @@ class AnchorNode(Node):
                 self.get_logger().info(f'reputation set -> {self.reputation:.2f}')
             elif p.name == 'publish_rate':
                 rate = float(p.value)
-                if rate > 0:
+                # ALWAYS tear down the old timer first. The previous
+                # `if rate > 0` guard left the prior timer running when
+                # rate=0 was set (scenarios S2/S3), so the anchor kept
+                # publishing and the follower's silence watchdog never
+                # fired.
+                if self.distilled_timer is not None:
                     self.distilled_timer.destroy()
+                    self.distilled_timer = None
+                if rate > 0:
                     self.distilled_timer = self.create_timer(
                         1.0 / rate, self._publish_distilled
                     )
                     self.get_logger().info(f'publish_rate set -> {rate}Hz')
+                else:
+                    self.get_logger().info('publish_rate set -> 0 (silenced)')
         return SetParametersResult(successful=True)
 
 

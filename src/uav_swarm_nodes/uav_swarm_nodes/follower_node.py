@@ -59,6 +59,10 @@ class FollowerNode(Node):
         self.declare_parameter('alpha_rep', 0.35)
         self.declare_parameter('alpha_cap', 0.25)
         self.declare_parameter('target_capacity_norm', 10.0)
+        # Paper IV-C T_reject — anchor whose published reputation falls
+        # below this triggers immediate failover (scenario S5) rather
+        # than waiting for the t_timeout silence watchdog.
+        self.declare_parameter('t_reject', 0.20)
 
         self.follower_id = int(self.get_parameter('follower_id').value)
         self.current_anchor = int(self.get_parameter('initial_anchor_id').value)
@@ -69,6 +73,7 @@ class FollowerNode(Node):
         self.alpha_rep = float(self.get_parameter('alpha_rep').value)
         self.alpha_cap = float(self.get_parameter('alpha_cap').value)
         self.capacity_norm = float(self.get_parameter('target_capacity_norm').value)
+        self.t_reject = float(self.get_parameter('t_reject').value)
 
         # State
         self.state = STATE_ATTACHED
@@ -126,6 +131,22 @@ class FollowerNode(Node):
             return  # ignore stray messages on a wrong topic mapping
         if self.state != STATE_ATTACHED:
             return  # discard messages from dying anchor during failover
+        # Paper IV-C / IV-F: anchor with R < T_reject triggers failover
+        # immediately (don't wait for silence watchdog). This is scenario
+        # S5; without it followers would happily attach to a known-bad
+        # anchor as long as it keeps broadcasting.
+        if float(msg.reputation) < self.t_reject:
+            self.t_anchor_death = time.monotonic()
+            self.state = STATE_DETECTING
+            self.offers_received = []
+            self._send_reassign_request()
+            self.create_timer(self.t_offer_window, self._close_offer_window)
+            self.get_logger().warning(
+                f'follower {self.follower_id}: anchor {self.current_anchor} '
+                f'R={float(msg.reputation):.3f} < T_reject={self.t_reject} '
+                f'-- entering DETECTING (S5 trigger)'
+            )
+            return
         self.last_distilled_t = time.monotonic()
         self.last_known_position = (msg.position.x, msg.position.y, msg.position.z)
 
