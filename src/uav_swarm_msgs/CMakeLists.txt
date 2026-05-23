@@ -22,6 +22,9 @@ set(msg_files
   # Reputation -> quorum exclusion (paper Section IV-C + IV-F end, Phase 2)
   msg/PeerReputationView.msg
   msg/ExclusionEvent.msg
+  # Factor graph + UWB ranging (paper Section IV-D, Phase 3)
+  msg/UwbRangeMeasurement.msg
+  msg/EstimatedPose.msg
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}
