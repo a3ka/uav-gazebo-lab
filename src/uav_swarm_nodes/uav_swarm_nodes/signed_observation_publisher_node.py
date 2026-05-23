@@ -51,6 +51,7 @@ class SignedObservationPublisherNode(Node):
         self.declare_parameter('n_top', 50)
         self.declare_parameter('k_modea', 20)
         self.declare_parameter('byzantine_offset_x', 3000.0)
+        self.declare_parameter('initial_position', [0.0, 0.0, 50.0])
 
         self.uav_id = int(self.get_parameter('uav_id').value)
         self.mode = str(self.get_parameter('mode').value).lower()
@@ -63,7 +64,10 @@ class SignedObservationPublisherNode(Node):
         self.k_modea = int(self.get_parameter('k_modea').value)
         self.byz_offset_x = float(self.get_parameter('byzantine_offset_x').value)
 
-        self.my_position_xyz: tuple[float, float, float] = (0.0, 0.0, 50.0)
+        ip = self.get_parameter('initial_position').value
+        self.my_position_xyz: tuple[float, float, float] = (
+            float(ip[0]), float(ip[1]), float(ip[2])
+        )
 
         # Lazy SuperPoint
         self._model = None

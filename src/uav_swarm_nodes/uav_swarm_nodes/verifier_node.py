@@ -66,6 +66,7 @@ class VerifierNode(Node):
         self.declare_parameter('n_top', 50)
         self.declare_parameter('lowe_tau', 0.7)
         self.declare_parameter('max_pending_age_s', 3600.0)
+        self.declare_parameter('initial_position', [0.0, 0.0, 50.0])
 
         self.verifier_id = int(self.get_parameter('verifier_id').value)
         self.position_topic = str(self.get_parameter('position_topic').value)
@@ -82,7 +83,10 @@ class VerifierNode(Node):
         self._device = None
         self._tile_paths: list = []
 
-        self.my_position_xyz: Optional[tuple[float, float, float]] = None
+        ip = self.get_parameter('initial_position').value
+        self.my_position_xyz: Optional[tuple[float, float, float]] = (
+            float(ip[0]), float(ip[1]), float(ip[2])
+        )
         self.pending: deque[PendingObs] = deque(maxlen=200)
 
         # Subscriptions
@@ -96,9 +100,13 @@ class VerifierNode(Node):
             NoisyPose, self.position_topic, self._on_my_position, 10
         )
 
-        # ReputationUpdate publisher (created lazily per target id since
-        # ROS2 topics need to start with non-digit segment, see Phase 4
-        # gotcha doc)
+        # ReputationUpdate publisher: broadcast channel so EVERY
+        # reputation_manager sees this verifier's votes (per paper IV-C
+        # the update weight is gated by Rk = reporter's R, evaluated per
+        # listener). Per-target topics kept as well for backward compat.
+        self.pub_rep_broadcast = self.create_publisher(
+            ReputationUpdate, '/reputation/update', 10
+        )
         self._rep_pubs: dict[int, rclpy.publisher.Publisher] = {}
 
         # Verification-attempt tick
@@ -167,6 +175,7 @@ class VerifierNode(Node):
         upd.new_value = 0.0  # filled by reputation_manager
         upd.reason = reason
         self._pub_for(obs.target_id).publish(upd)
+        self.pub_rep_broadcast.publish(upd)
         self.get_logger().info(
             f'verifier {self.verifier_id} -> target {obs.target_id}: '
             f'{"VERIFIED" if verdict else "UNVERIFIED"}'
