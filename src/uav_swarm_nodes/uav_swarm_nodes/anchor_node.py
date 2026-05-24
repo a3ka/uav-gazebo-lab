@@ -28,6 +28,7 @@ import rclpy
 from rclpy.node import Node
 
 from uav_swarm_msgs.msg import (
+    AnchorLoad,
     AttachAck,
     DistilledState,
     ReassignOffer,
@@ -36,8 +37,8 @@ from uav_swarm_msgs.msg import (
 
 
 class AnchorNode(Node):
-    def __init__(self) -> None:
-        super().__init__('anchor_node')
+    def __init__(self, node_name: str = 'anchor_node', **kwargs) -> None:
+        super().__init__(node_name, **kwargs)
 
         self.declare_parameter('anchor_id', 0)
         self.declare_parameter('initial_position', [0.0, 0.0, 50.0])
@@ -53,6 +54,12 @@ class AnchorNode(Node):
         rate = float(self.get_parameter('publish_rate').value)
 
         self.followers_attached: set[int] = set()
+        # Cache per-follower ATTACH_ACK publishers. Without this, each
+        # ATTACH_REQUEST callback created a fresh local publisher that
+        # could be GC'd before DDS delivered the msg -- and the per-
+        # follower discovery storm at N>=100 brought mission-survival
+        # to ~1-5% (Phase 6 N=200 sweep result).
+        self._ack_pubs: dict[int, 'rclpy.publisher.Publisher'] = {}
 
         # Publishers
         # Note: ROS2 topic-segment validator rejects segments that start with
@@ -63,6 +70,11 @@ class AnchorNode(Node):
         )
         self.pub_offer = self.create_publisher(
             ReassignOffer, f'/reassign/offer/a{self.anchor_id}', 10
+        )
+        # Phase 6 load broadcast -- piggybacked on the DistilledState
+        # timer so load_monitor_node gets a sample at the same rate.
+        self.pub_load = self.create_publisher(
+            AnchorLoad, '/anchor/load', 50
         )
 
         # Subscribers
@@ -99,6 +111,14 @@ class AnchorNode(Node):
         msg.uav_id = self.anchor_id
         # signature_ed25519 left zero -- crypto wiring lives in Phase 2
         self.pub_distilled.publish(msg)
+        # Phase 6 load broadcast (one per tick)
+        load = AnchorLoad()
+        load.timestamp = msg.timestamp
+        load.anchor_id = self.anchor_id
+        load.target_capacity = self.target_capacity
+        load.n_attached = len(self.followers_attached)
+        load.over_capacity = (load.n_attached > load.target_capacity)
+        self.pub_load.publish(load)
 
     def _on_reassign_request(self, msg: ReassignRequest) -> None:
         capacity_free = max(0, self.target_capacity - len(self.followers_attached))
@@ -129,9 +149,14 @@ class AnchorNode(Node):
         ack.confirmed_position.y = msg.last_position.y
         ack.confirmed_position.z = msg.last_position.z
         ack.confirmed_covariance = [4.0, 0.0, 0.0, 4.0, 0.0, 1.0]
-        # Per-follower ack channel ('f' prefix for ROS2 topic name validity)
-        ack_pub = self.create_publisher(AttachAck, f'/attach/ack/f{fid}', 10)
-        ack_pub.publish(ack)
+        # Per-follower ack channel ('f' prefix for ROS2 topic name validity).
+        # Publisher is CACHED -- creating one per request triggered a
+        # DDS discovery storm + local-publisher GC race at N>=100.
+        if fid not in self._ack_pubs:
+            self._ack_pubs[fid] = self.create_publisher(
+                AttachAck, f'/attach/ack/f{fid}', 10
+            )
+        self._ack_pubs[fid].publish(ack)
         self.get_logger().info(
             f'anchor {self.anchor_id}: ATTACH_ACK -> follower {fid} '
             f'(attached={len(self.followers_attached)}/{self.target_capacity})'

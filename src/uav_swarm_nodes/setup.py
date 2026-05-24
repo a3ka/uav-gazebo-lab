@@ -37,6 +37,9 @@ setup(
             # Phase 5 GNSS spoofing detection
             'spoof_detector_node = uav_swarm_nodes.spoof_detector_node:main',
             'multi_uwb_simulator_node = uav_swarm_nodes.multi_uwb_simulator_node:main',
+            # Phase 6 attrition + load balancing
+            'attrition_orchestrator_node = uav_swarm_nodes.attrition_orchestrator_node:main',
+            'load_monitor_node = uav_swarm_nodes.load_monitor_node:main',
         ],
     },
 )

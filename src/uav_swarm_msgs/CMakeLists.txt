@@ -28,6 +28,9 @@ set(msg_files
   msg/TrnAbsoluteFix.msg
   # GNSS spoofing alert (paper Pillar 5, Phase 5)
   msg/SpoofAlert.msg
+  # Progressive attrition events (paper Pillar 6, Phase 6)
+  msg/AttritionEvent.msg
+  msg/AnchorLoad.msg
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}

@@ -47,8 +47,8 @@ STATE_ATTACHING = 'ATTACHING'
 
 
 class FollowerNode(Node):
-    def __init__(self) -> None:
-        super().__init__('follower_node')
+    def __init__(self, node_name: str = 'follower_node', **kwargs) -> None:
+        super().__init__(node_name, **kwargs)
 
         self.declare_parameter('follower_id', 0)
         self.declare_parameter('initial_anchor_id', 0)
@@ -121,10 +121,56 @@ class FollowerNode(Node):
         # Watchdog tick at 10 Hz
         self.watchdog_timer = self.create_timer(0.1, self._watchdog_tick)
 
+        # One-shot initial ATTACH_REQUEST with PER-FOLLOWER JITTER. At
+        # N>=100 followers all firing within the same second triggered
+        # a DDS discovery storm + the anchor's subscription on
+        # /attach/request/a<id> wasn't fully wired before the first
+        # bursts arrived, so most ATTACH_REQUESTs were dropped and
+        # `n_attached` stayed at 0 across the mission. Spread the
+        # initial attach over [2, 6] s using a stable hash of
+        # follower_id so the schedule is reproducible.
+        import random as _r
+        jitter_s = 2.0 + _r.Random(int(self.follower_id) * 7919).uniform(0.0, 4.0)
+        self._initial_attach_timer = self.create_timer(
+            jitter_s, self._send_initial_attach
+        )
+
         self.get_logger().info(
             f'follower_node: id={self.follower_id} init_anchor={self.current_anchor} '
             f'known_anchors={self.known_anchors} t_timeout={self.t_timeout}s'
         )
+
+    def _send_initial_attach(self) -> None:
+        # Fire once then cancel
+        self._initial_attach_timer.cancel()
+        self.attach_target = self.current_anchor
+        self._publish_attach_request()
+
+    def _publish_attach_request(self) -> None:
+        """Send ATTACH_REQUEST to self.attach_target, caching publisher.
+
+        Per-anchor publisher cache avoids creating a fresh local publisher
+        per call -- at N>=100 the discovery storm + local-publisher GC
+        race lost most attaches (Phase 6 N=200 bringup).
+        """
+        if not hasattr(self, '_attach_pubs'):
+            self._attach_pubs: dict[int, 'rclpy.publisher.Publisher'] = {}
+        if self.attach_target not in self._attach_pubs:
+            self._attach_pubs[self.attach_target] = self.create_publisher(
+                ReassignRequest,
+                f'/attach/request/a{self.attach_target}',
+                10,
+            )
+        attach = ReassignRequest()
+        attach.timestamp = int(time.time() * 1_000_000)
+        attach.follower_id = self.follower_id
+        attach.last_position.x = self.last_known_position[0]
+        attach.last_position.y = self.last_known_position[1]
+        attach.last_position.z = self.last_known_position[2]
+        attach.velocity.x = 0.0; attach.velocity.y = 0.0; attach.velocity.z = 0.0
+        attach.battery_pct = 1.0
+        attach.sensor_caps = 0xF
+        self._attach_pubs[self.attach_target].publish(attach)
 
     def _on_distilled(self, msg: DistilledState) -> None:
         if int(msg.uav_id) != self.current_anchor:
@@ -218,22 +264,10 @@ class FollowerNode(Node):
         return self.alpha_prox / d + self.alpha_rep * offer.reputation + self.alpha_cap * (1.0 - load)
 
     def _send_attach(self, offer: ReassignOffer) -> None:
-        # Reuses ReassignRequest payload per spec
-        attach = ReassignRequest()
-        attach.timestamp = int(time.time() * 1_000_000)
-        attach.follower_id = self.follower_id
-        attach.last_position.x = self.last_known_position[0]
-        attach.last_position.y = self.last_known_position[1]
-        attach.last_position.z = self.last_known_position[2]
-        attach.velocity.x = 0.0
-        attach.velocity.y = 0.0
-        attach.velocity.z = 0.0
-        attach.battery_pct = 1.0
-        attach.sensor_caps = 0xF
-        pub_attach = self.create_publisher(
-            ReassignRequest, f'/attach/request/a{self.attach_target}', 10
-        )
-        pub_attach.publish(attach)
+        # attach_target was set by _close_offer_window. Cached publisher
+        # avoids the DDS discovery storm + GC race that nuked Phase 6
+        # bringup at N>=100.
+        self._publish_attach_request()
 
     def _on_ack(self, msg: AttachAck) -> None:
         if self.state != STATE_ATTACHING:
