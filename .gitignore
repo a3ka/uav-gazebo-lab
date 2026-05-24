@@ -57,6 +57,13 @@ workspaces/phase5-prod/*
 !workspaces/phase5-prod/detect_dist.png
 !workspaces/phase5-prod/results.csv
 
+# Phase 6 Tier B production sweep artefacts
+!workspaces/phase6-tier-b-prod/
+workspaces/phase6-tier-b-prod/*
+!workspaces/phase6-tier-b-prod/manifest.json
+!workspaces/phase6-tier-b-prod/analysis.json
+!workspaces/phase6-tier-b-prod/results.csv
+
 # Secrets
 .env
 .env.*
