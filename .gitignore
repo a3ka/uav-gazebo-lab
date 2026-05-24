@@ -64,6 +64,28 @@ workspaces/phase6-tier-b-prod/*
 !workspaces/phase6-tier-b-prod/analysis.json
 !workspaces/phase6-tier-b-prod/results.csv
 
+# Phase 7 ablation artefacts (4 variants, small CSVs + analyses)
+!workspaces/phase7-abl1-nospoof/
+workspaces/phase7-abl1-nospoof/*
+!workspaces/phase7-abl1-nospoof/manifest.json
+!workspaces/phase7-abl1-nospoof/analysis.json
+!workspaces/phase7-abl1-nospoof/results.csv
+!workspaces/phase7-abl2-nofailover/
+workspaces/phase7-abl2-nofailover/*
+!workspaces/phase7-abl2-nofailover/manifest.json
+!workspaces/phase7-abl2-nofailover/analysis.json
+!workspaces/phase7-abl2-nofailover/results.csv
+!workspaces/phase7-abl3-noloadbal/
+workspaces/phase7-abl3-noloadbal/*
+!workspaces/phase7-abl3-noloadbal/manifest.json
+!workspaces/phase7-abl3-noloadbal/analysis.json
+!workspaces/phase7-abl3-noloadbal/results.csv
+!workspaces/phase7-abl4-notrn/
+workspaces/phase7-abl4-notrn/*
+!workspaces/phase7-abl4-notrn/manifest.json
+!workspaces/phase7-abl4-notrn/analysis.json
+!workspaces/phase7-abl4-notrn/sweep.csv
+
 # Secrets
 .env
 .env.*

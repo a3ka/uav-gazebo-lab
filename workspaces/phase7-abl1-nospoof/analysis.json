@@ -1,0 +1,23 @@
+{
+  "csv": "workspaces/phase7-abl1-nospoof/results.csv",
+  "summary": {
+    "n_trials": 5,
+    "n_victims": 10,
+    "n_detected": 0,
+    "detection_rate_per_victim": 0.0,
+    "n_trials_passed": 0,
+    "trial_pass_rate": 0.0,
+    "n_trials_with_fp": 0,
+    "total_fp": 0,
+    "mean_fp_per_trial": 0.0,
+    "t_detect_median_s": null,
+    "t_detect_p95_s": null,
+    "t_detect_p99_s": null,
+    "t_detect_mean_s": null,
+    "t_detect_std_s": null,
+    "t_detect_min_s": null,
+    "t_detect_max_s": null,
+    "mean_n_uavs": 20.0,
+    "mean_n_edges": 90.2
+  }
+}

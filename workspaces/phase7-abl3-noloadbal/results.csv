@@ -1,0 +1,4 @@
+trial,seed,n_events,rebal_latency_median,rebal_latency_max,over_cap_interval_median,over_cap_interval_max,pass_rebalance_per_event,pass_over_cap_per_event,mission_survived,total_attached_final,pass_trial,wall_time_s
+1,1000001,3,29.8708,29.9827,29.5546,29.8756,0,0,True,40,False,129.33
+0,1000000,3,29.947,29.963,29.6207,29.7885,0,0,True,40,False,129.34
+2,1000002,3,29.8887,29.8956,29.6772,29.8124,0,0,True,40,False,129.29

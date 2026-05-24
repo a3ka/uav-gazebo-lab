@@ -1,0 +1,20 @@
+{
+  "run_id": "phase7-abl2-nofailover",
+  "phase": 4,
+  "scenarios": [
+    "S1"
+  ],
+  "trials_per_scenario": 3,
+  "n_anchors": 3,
+  "n_followers": 3,
+  "victim_anchor_id": 0,
+  "t_steady_s": 5.0,
+  "t_pass_budget_s": 5.0,
+  "t_timeout_s": 30.0,
+  "jobs": 1,
+  "total_trials": 3,
+  "started_at": "2026-05-24T19:28:11Z",
+  "completed": 3,
+  "finished_at": "2026-05-24T19:30:16Z",
+  "wall_time_s": 124.5
+}

@@ -45,7 +45,7 @@ def _profile_for(m_anchors: int, victims: int, t_step_s: float,
 def run_one_trial(args_tuple) -> dict:
     (trial, seed, n_uavs, m_anchors, region_m, r_comm_m,
      profile_str, t_mission_s, t_warmup_s, n_followers_init,
-     trials_dir) = args_tuple
+     trials_dir, alpha_cap, t_timeout_s) = args_tuple
     out_json = trials_dir / f'trial_{trial:04d}.metrics.json'
     csv_path = trials_dir / f'trial_{trial:04d}.timeline.csv'
     analysis_path = trials_dir / f'trial_{trial:04d}.analysis.json'
@@ -61,7 +61,9 @@ def run_one_trial(args_tuple) -> dict:
          '--t-mission-s', str(t_mission_s),
          '--seed', str(seed),
          '--out', str(out_json),
-         '--csv-out', str(csv_path)],
+         '--csv-out', str(csv_path),
+         '--alpha-cap', str(alpha_cap),
+         '--t-timeout-s', str(t_timeout_s)],
         capture_output=True, env=env, check=False,
     )
     wall = time.monotonic() - t0
@@ -129,6 +131,10 @@ def main() -> int:
     p.add_argument('--run-id', required=True)
     p.add_argument('--jobs', type=int, default=1)
     p.add_argument('--keep-trials', action='store_true')
+    p.add_argument('--alpha-cap', type=float, default=0.25,
+                   help='Phase 7 ABL3: set 0 to disable load-balancing weight')
+    p.add_argument('--t-timeout-s', type=float, default=5.0,
+                   help='Phase 7 ABL2: set 10000 to disable failover')
     args = p.parse_args()
 
     run_dir = ROOT / 'workspaces' / args.run_id
@@ -171,6 +177,7 @@ def main() -> int:
             t, seed, args.n_uavs, args.m_anchors, args.region_m,
             args.r_comm_m, profile_str, args.t_mission_s,
             args.t_warmup_s, n_followers_init, trials_dir,
+            args.alpha_cap, args.t_timeout_s,
         ))
 
     print(f'[sweep] run_id={args.run_id} total={len(work)} jobs={args.jobs} '

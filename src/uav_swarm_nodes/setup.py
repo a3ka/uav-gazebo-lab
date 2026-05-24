@@ -40,6 +40,10 @@ setup(
             # Phase 6 attrition + load balancing
             'attrition_orchestrator_node = uav_swarm_nodes.attrition_orchestrator_node:main',
             'load_monitor_node = uav_swarm_nodes.load_monitor_node:main',
+            # Phase 8 SwarmRaft baseline (Raft leader election)
+            'raft_node = uav_swarm_nodes.raft_node:main',
+            # Phase 6 Tier A — bridge PX4 vehicle_local_position to NoisyPose
+            'px4_position_bridge_node = uav_swarm_nodes.px4_position_bridge_node:main',
         ],
     },
 )

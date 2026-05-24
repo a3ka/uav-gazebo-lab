@@ -1,0 +1,20 @@
+{
+  "csv": "workspaces/phase7-abl2-nofailover/results.csv",
+  "total_measurements": 9,
+  "per_scenario": [
+    {
+      "scenario": "S1",
+      "n_total": 9,
+      "n_pass": 9,
+      "pass_rate": 1.0,
+      "pass_threshold_s": 35.0,
+      "switch_time_median": 31.0251,
+      "switch_time_p95": 31.0788,
+      "switch_time_p99": 31.0788,
+      "switch_time_mean": 31.0424,
+      "switch_time_std": 0.0266,
+      "switch_time_min": 31.0232,
+      "switch_time_max": 31.0788
+    }
+  ]
+}

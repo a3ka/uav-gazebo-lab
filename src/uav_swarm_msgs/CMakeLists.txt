@@ -31,6 +31,10 @@ set(msg_files
   # Progressive attrition events (paper Pillar 6, Phase 6)
   msg/AttritionEvent.msg
   msg/AnchorLoad.msg
+  # SwarmRaft baseline comparison (Phase 8)
+  msg/RaftHeartbeat.msg
+  msg/RaftVoteRequest.msg
+  msg/RaftVoteGrant.msg
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}

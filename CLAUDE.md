@@ -124,9 +124,9 @@ Do NOT swap any of these without updating both this file and
 - [x] Phase 3 — CEP vs hops + relay refit (CPU, TRN mocked) — COMPLETE 2026-05-23; 1000-trial sweep, CEP_50 at k=3 = 6.47m (PASS < 100m); paper GDOP formula superseded by `CEP(k) ≈ 3·√(k+1)` (sqrt-hops AIC=9.2 vs GDOP AIC=16.3)
 - [x] Phase 4 — Failover timing (CPU, local) — COMPLETE 2026-05-23; 1200 follower-switches across 4 scenarios (S1/S2/S3/S5; S4 deferred), all 100% pass; silence-triggered p99=6.24s, reputation-triggered p99=1.94s, both << 15s threshold
 - [x] Phase 5 — GNSS spoofing reaction (CPU, local) — COMPLETE 2026-05-23; N=20/F=2 × 30 trials, detection_rate=98.3% (59/60), 0 false positives, p99 detection 0.60s (paper criterion <5s); N=50 scope-limited due to Python rclpy/DDS overhead (documented; Phase 7 C++ detector follow-up)
-- [🟡] Phase 6 — Progressive attrition + load balancing — Tier B (Python MC) COMPLETE 2026-05-24; 15/15 trials mission_survived at N=50/M=10/3-kill, but capacity-invariant timing budget violated 6× (29.8s vs paper 5s) due to thundering-herd in α_cap selection — paper-v10 erratum + protocol revision needed. Tier A (Gazebo) DEFERRED; N=200 scaling cliff documented.
-- [ ] Phase 7 — Ablation (integration)
-- [ ] Phase 8 — SwarmRaft baseline comparison
+- [🟡] Phase 6 — Progressive attrition + load balancing — Tier B (Python MC) COMPLETE 2026-05-24; 15/15 trials mission_survived at N=50/M=10/3-kill, but capacity-invariant timing budget violated 6× (29.8s vs paper 5s) due to thundering-herd in α_cap selection — paper-v10 erratum + protocol revision needed. Tier A 1-trial demo (N=5 PX4 + bridge + Phase 4 protocol on Gazebo flight dynamics) PASS at 6.10s; full Tier A campaign DEFERRED. N=200 scaling cliff documented.
+- [x] Phase 7 — Ablation 2026-05-24; 4 ablations × 3-5 trials. ABL1 spoof-detection NECESSARY (98.3%→0%). ABL2 failover-watchdog is timing knob (6s→31s, 5×). ABL3 α_cap NOT load-balancing lever (no change). ABL4 TRN scaffold-artifact (CEP improves on disable — needs revised scenario).
+- [🟡] Phase 8 — SwarmRaft baseline — infrastructure built (raft_node + 3 msgs + comparison scripts), initial leader election works; recovery-after-kill stability issue documented (DEFERRED to v11 or canonical SwarmRaft wrap). Paper's comparative claim must DEFER, DROP, or use partial evidence.
 
 ## When in doubt
 

@@ -156,7 +156,9 @@ class AttritionEnforcer(Node):
 def run_trial(*, n_uavs: int, m_anchors: int, region_m: float,
               r_comm_m: float, altitude_m: float, sigma_uwb_m: float,
               profile: list[dict], t_mission_s: float, t_warmup_s: float,
-              seed: int, csv_out: Path) -> dict[str, Any]:
+              seed: int, csv_out: Path,
+              t_timeout_s: float = 5.0,
+              alpha_cap: float = 0.25) -> dict[str, Any]:
     n_followers = n_uavs - m_anchors
     uavs = _layout(n_uavs, region_m, altitude_m, seed)
     edges = _edges(uavs, r_comm_m)
@@ -213,8 +215,10 @@ def run_trial(*, n_uavs: int, m_anchors: int, region_m: float,
                 'follower_id': int(u['id']),
                 'initial_anchor_id': int(init_anchor_of[u['id']]),
                 'known_anchor_ids': [int(a) for a in anchor_ids],
-                't_timeout': 5.0, 't_offer_window': 1.0,
+                't_timeout': float(t_timeout_s),
+                't_offer_window': 1.0,
                 't_reject': 0.20,
+                'alpha_cap': float(alpha_cap),
             }),
         )
 
@@ -314,6 +318,10 @@ def main() -> int:
     p.add_argument('--seed', type=int, default=42)
     p.add_argument('--out', required=True)
     p.add_argument('--csv-out', required=True)
+    # Ablation knobs (Phase 7): t-timeout=10000 disables failover;
+    # alpha-cap=0.0 disables load-balancing weight in selection.
+    p.add_argument('--t-timeout-s', type=float, default=5.0)
+    p.add_argument('--alpha-cap', type=float, default=0.25)
     args = p.parse_args()
 
     profile = _parse_profile(args.profile)
@@ -324,6 +332,8 @@ def main() -> int:
         profile=profile, t_mission_s=args.t_mission_s,
         t_warmup_s=args.t_warmup_s, seed=args.seed,
         csv_out=Path(args.csv_out),
+        t_timeout_s=args.t_timeout_s,
+        alpha_cap=args.alpha_cap,
     )
     Path(args.out).write_text(json.dumps(metrics, indent=2))
     print(f'[tier-b] events={metrics["n_events_handled"]}/'
