@@ -1,0 +1,52 @@
+{
+  "csv": "workspaces/phase7-abl4-notrn-v2/sweep.csv",
+  "total_trials": 5,
+  "per_k": [
+    {
+      "k": 3,
+      "n_trials": 5,
+      "cep50_mean": 1.071,
+      "cep50_median": 0.9376,
+      "cep50_std": 0.3042,
+      "cep50_p25": 0.825,
+      "cep50_p75": 1.32,
+      "cep95_mean": 1.3622
+    }
+  ],
+  "fits": {
+    "gdop": {
+      "model": "gdop",
+      "error": "need >=2 data points"
+    },
+    "sqrt_hop": {
+      "model": "sqrt_hop",
+      "formula": "cep(k) = sigma_0 * sqrt(k + 1)",
+      "sigma_0": 0.4688,
+      "rss": 0.0,
+      "aic": Infinity,
+      "predictions": [
+        0.9376
+      ]
+    },
+    "linear": {
+      "model": "linear",
+      "formula": "cep(k) = a + b * k",
+      "a": 0.9376,
+      "b": 0.0,
+      "rss": 0.0,
+      "aic": Infinity,
+      "predictions": [
+        0.9376
+      ]
+    }
+  },
+  "best_fit_model": "sqrt_hop",
+  "paper_pass_at_k3": {
+    "k3_available": true,
+    "k3_cep50_median": 0.9376,
+    "k3_cep50_mean": 1.071,
+    "n_trials": 5,
+    "threshold_m": 100.0,
+    "pass": true
+  }
+}

@@ -57,7 +57,7 @@ def _trial_seed(k: int, trial: int, seed_base: int) -> int:
 
 def run_one_trial(args_tuple) -> dict:
     (k, trial, seed_base, trials_dir, warmup_s, trial_s,
-     sigma_uwb_m, sigma_trn_m, trn_period_s) = args_tuple
+     sigma_uwb_m, sigma_trn_m, trn_period_s, m_relay) = args_tuple
     seed = _trial_seed(k, trial, seed_base)
     topo_path = trials_dir / f'topo_k{k}_t{trial:04d}.json'
     metrics_path = trials_dir / f'metrics_k{k}_t{trial:04d}.json'
@@ -70,11 +70,11 @@ def run_one_trial(args_tuple) -> dict:
     env['ROS_DOMAIN_ID'] = str((os.getpid() % 100) + 1)
     t0 = time.monotonic()
     # 1. topology
-    subprocess.run(
-        ['python3', str(GEN), '--k', str(k), '--seed', str(seed),
-         '--out', str(topo_path), '--check'],
-        check=True, capture_output=True, env=env,
-    )
+    gen_args = ['python3', str(GEN), '--k', str(k), '--seed', str(seed),
+                '--out', str(topo_path), '--check']
+    if m_relay is not None:
+        gen_args += ['--m-relay', str(m_relay)]
+    subprocess.run(gen_args, check=True, capture_output=True, env=env)
     # 2. scenario
     subprocess.run(
         ['python3', str(RUNNER),
@@ -118,6 +118,8 @@ def main() -> int:
                    help='parallel trials (CPU-bound; rclpy is single-thread per proc)')
     p.add_argument('--keep-topologies', action='store_true',
                    help='do not delete per-trial topology + metrics JSON after CSV append')
+    p.add_argument('--m-relay', type=int, default=None,
+                   help='UAVs per follower level; None=M (triangulated), 1=linear sparse chain')
     args = p.parse_args()
 
     run_dir = ROOT / 'workspaces' / args.run_id
@@ -161,6 +163,7 @@ def main() -> int:
                 k, t, args.seed_base, trials_dir,
                 args.warmup_s, args.trial_s,
                 args.sigma_uwb_m, args.sigma_trn_m, args.trn_period_s,
+                args.m_relay,
             ))
 
     print(f'[sweep] run_id={args.run_id} total={len(work)} jobs={args.jobs}', flush=True)

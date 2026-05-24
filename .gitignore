@@ -115,3 +115,27 @@ workspaces/phase6-tier-b-prod-v2/*
 !workspaces/phase6-tier-b-prod-v2/manifest.json
 !workspaces/phase6-tier-b-prod-v2/analysis.json
 !workspaces/phase6-tier-b-prod-v2/results.csv
+
+# Phase 7 ABL4-v3 (TRN-disabled with anchor-init noise fix)
+!workspaces/phase7-abl4-notrn-v2/
+workspaces/phase7-abl4-notrn-v2/*
+!workspaces/phase7-abl4-notrn-v2/manifest.json
+!workspaces/phase7-abl4-notrn-v2/analysis.json
+!workspaces/phase7-abl4-notrn-v2/sweep.csv
+!workspaces/phase7-abl4-notrn-v3/
+workspaces/phase7-abl4-notrn-v3/*
+!workspaces/phase7-abl4-notrn-v3/manifest.json
+!workspaces/phase7-abl4-notrn-v3/sweep.csv
+
+# Phase 3 baseline-v3 (anchor init noise check)
+!workspaces/phase3-baseline-v3/
+workspaces/phase3-baseline-v3/*
+!workspaces/phase3-baseline-v3/manifest.json
+!workspaces/phase3-baseline-v3/sweep.csv
+
+# Phase 7 sparse-chain ABL (m_relay=1)
+!workspaces/phase7-sparse-chain/
+workspaces/phase7-sparse-chain/*
+!workspaces/phase7-sparse-chain/manifest.json
+!workspaces/phase7-sparse-chain/analysis.json
+!workspaces/phase7-sparse-chain/sweep.csv

@@ -147,20 +147,24 @@ def build_nodes(
     # operating regime; Phase 6+ swaps the noise mock for true PX4
     # IMU pre-integration.
     init_rng = random.Random(int(topo.get('seed', 0)) * 7919 + 1)
-    sigma_init_m = 2.0
+    sigma_follower_init = 2.0
+    # Anchors also get off-truth init -- without this, even wide
+    # anchor_self_sigma left iSAM2's linearization point AT truth so
+    # disabling TRN paradoxically IMPROVED CEP (Phase 7 ABL4-v2
+    # artefact). 30m init noise (mimics "anchor took off, IMU drifted
+    # before TRN lock") forces the system to actually USE TRN factors.
+    sigma_anchor_init = 30.0
 
     # Factor graph -- one per UAV
     for u in topo['uavs']:
         x, y, z = u['position']
         is_anchor = u['role'] == 'anchor'
-        if is_anchor:
-            init = [float(x), float(y), float(z)]
-        else:
-            init = [
-                float(x) + init_rng.gauss(0.0, sigma_init_m),
-                float(y) + init_rng.gauss(0.0, sigma_init_m),
-                float(z),
-            ]
+        s_init = sigma_anchor_init if is_anchor else sigma_follower_init
+        init = [
+            float(x) + init_rng.gauss(0.0, s_init),
+            float(y) + init_rng.gauss(0.0, s_init),
+            float(z),
+        ]
         # anchor_self_sigma=50m (NOT 1m). Tight self-prior at truth was
         # a scaffold artifact: real-world anchors do NOT know their own
         # position -- they MUST rely on TRN to estimate it. With a 1m

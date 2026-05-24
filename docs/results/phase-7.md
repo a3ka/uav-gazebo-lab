@@ -71,28 +71,54 @@ The real fix needs randomized tie-breaking, coordinated assignment,
 or anchor-side admission control. See Phase 6 erratum (already
 filed in `docs/results/phase-6.md`).
 
-### ABL4 — Test scaffold artifact (subsequently FIXED in Phase 3 v2)
+### ABL4 — Three versions; final v3 shows TRN is MARGINAL in dense graph
 
-Setting `sigma_trn=1e9` makes the TRN prior covariance huge → no
-meaningful constraint. But our test scaffold initialised anchors
-with a tight 1 m self-prior at truth, so disabling TRN *improves*
-CEP because the noisy mock-TRN was the dominant error source. In
-real deployment, anchors do not know their true position and require
-TRN.
+| Version | sigma_trn | anchor_self_sigma | anchor_init | CEP@k=3 | Finding |
+|---|---|---|---|---|---|
+| ABL4-v1 | 1e9 (off) | 1.0m | =truth | 1.33m | scaffold artefact: tight self-prior at truth made TRN redundant |
+| ABL4-v2 | 1e9 (off) | 50m | =truth | 0.96m | wider self-prior alone didn't help -- iSAM2 still linearizes at truth |
+| **ABL4-v3** | 1e9 (off) | 50m | **truth+N(0,30m)** | **7.3m** | clean ablation finally possible |
+| baseline-v3 | 35m | 50m | truth+N(0,30m) | **6.6m** | reference (TRN active) |
 
-**Status: scaffold FIXED in Phase 3 v2 re-sweep (2026-05-24 evening).**
-With `anchor_self_sigma = 50 m` (anchors no longer "know" their
-truth) and `sigma_trn = 35 m` (paper-spec sensor noise), Phase 3 v2
-absolute CEP numbers became physically plausible (12.77 m at k=0
-vs. v1's 0.47 m artefact). An explicit ABL4-v2 re-run with the
-fixed scaffold WOULD now show CEP degradation when TRN is disabled
-— this is a one-line config follow-up. Not re-run in this session;
-the scaffold fix retroactively resolves the ABL4 paradox.
+**Honest finding from ABL4-v3:** disabling TRN in the DENSE
+triangulated topology gives only ~10 % CEP degradation (7.3 vs.
+6.6 m at k=3). In dense UWB graphs the swarm self-anchors via
+peer-to-peer triangulation; TRN's absolute reference is largely
+redundant once the geometry has enough trilateration peers.
 
-**v10:** Pillar 3 (TRN) necessity claim now has a clean experimental
-path. Either run ABL4-v2 next session, OR cite Phase 3 v2 result
-(k=0 CEP ~13 m at σ_trn=35 m) as direct evidence that TRN noise
-floors the swarm position estimate.
+**v10:** Pillar 3 (TRN) necessity claim is WEAKENED by this result.
+TRN remains essential at the ANCHOR LEVEL (k=0) where there are
+no peer relays — baseline-v3 k=0 ≈ 32 m, which is dominated by
+the anchor_init noise + TRN noise floor — but for the SWARM as a
+whole (k>=1), UWB-graph self-anchoring carries most of the load.
+v10 should re-state Pillar 3 as "TRN provides the anchor's
+absolute fix; UWB-graph self-anchoring carries swarm-wide
+position".
+
+### Sparse-chain follow-up (paper-original-regime ABL)
+
+Re-ran Phase 3 at the same realistic-v3 scaffold but with the
+generator's new `--m-relay 1` flag (M=3 anchors at level 0, then
+ONE relay per hop -- the paper's sparse linear chain assumption):
+
+| k | n | CEP_50 median | std |
+|---|---|---|---|
+| 1 | 5 | 33.15m | 13.99 |
+| 2 | 5 | 5.17m | 8.37 |
+| 3 | 5 | 7.29m | 5.15 |
+
+The k=1 result (33m, large) follows naturally: the level-1 relay
+trilaterates from 3 anchors which themselves carry CEP ≈ 30 m at
+the realistic scaffold. The k=2/k=3 results being SMALL is itself
+a scaffold artefact: follower init = truth + N(0,2m) keeps iSAM2
+linearizing close to truth, so the UWB-sphere ambiguity at
+single-peer hops doesn't manifest. Fully reproducing paper's
+positive-δ GDOP regime requires follower init also far off-truth
+(≥ 50 m). That tier of scaffold refinement is **paper-v11 work**.
+
+**For v10:** the (m_relay=1, k=1) → 33 m number is reportable as
+"first-hop sparse-chain CEP at realistic anchor noise"; higher-k
+sparse-chain numbers are scope-limited as noted above.
 
 ---
 

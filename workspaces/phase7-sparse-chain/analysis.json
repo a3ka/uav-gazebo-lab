@@ -1,0 +1,85 @@
+{
+  "csv": "workspaces/phase7-sparse-chain/sweep.csv",
+  "total_trials": 15,
+  "per_k": [
+    {
+      "k": 1,
+      "n_trials": 5,
+      "cep50_mean": 32.4069,
+      "cep50_median": 33.1489,
+      "cep50_std": 13.9945,
+      "cep50_p25": 21.1424,
+      "cep50_p75": 39.1242,
+      "cep95_mean": 63.2745
+    },
+    {
+      "k": 2,
+      "n_trials": 5,
+      "cep50_mean": 8.3204,
+      "cep50_median": 5.1744,
+      "cep50_std": 8.373,
+      "cep50_p25": 4.4195,
+      "cep50_p75": 6.8963,
+      "cep95_mean": 10.7905
+    },
+    {
+      "k": 3,
+      "n_trials": 5,
+      "cep50_mean": 7.7148,
+      "cep50_median": 7.29,
+      "cep50_std": 5.1522,
+      "cep50_p25": 2.962,
+      "cep50_p75": 11.9201,
+      "cep95_mean": 9.1458
+    }
+  ],
+  "fits": {
+    "gdop": {
+      "model": "gdop",
+      "formula": "cep(k) = sigma_0 * (1+delta)^k",
+      "sigma_0": 48.9885,
+      "delta": -0.531,
+      "rss": 139.899581,
+      "aic": 15.5269,
+      "predictions": [
+        22.9733,
+        10.7734,
+        5.0522
+      ]
+    },
+    "sqrt_hop": {
+      "model": "sqrt_hop",
+      "formula": "cep(k) = sigma_0 * sqrt(k + 1)",
+      "sigma_0": 7.8247,
+      "rss": 627.74023,
+      "aic": 18.0305,
+      "predictions": [
+        11.0657,
+        13.5527,
+        15.6493
+      ]
+    },
+    "linear": {
+      "model": "linear",
+      "formula": "cep(k) = a + b * k",
+      "a": 41.0633,
+      "b": -12.9294,
+      "rss": 150.902353,
+      "aic": 15.7541,
+      "predictions": [
+        28.1339,
+        15.2044,
+        2.275
+      ]
+    }
+  },
+  "best_fit_model": "gdop",
+  "paper_pass_at_k3": {
+    "k3_available": true,
+    "k3_cep50_median": 7.29,
+    "k3_cep50_mean": 7.7148,
+    "n_trials": 5,
+    "threshold_m": 100.0,
+    "pass": true
+  }
+}

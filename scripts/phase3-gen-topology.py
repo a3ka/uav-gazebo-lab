@@ -41,6 +41,7 @@ def generate_topology(
     k: int,
     *,
     M: int = 3,
+    m_relay: int | None = None,
     r_anchor_m: float = 20.0,
     r_comm_m: float = 100.0,
     step_m: float = 60.0,
@@ -77,33 +78,41 @@ def generate_topology(
     theta = rng.uniform(0.0, 2 * math.pi)
     dx, dy = math.cos(theta), math.sin(theta)
 
-    # Place a triangle of M UAVs at each level 0..k
+    # Per-level UAV count: M at level 0 (anchors), `m_relay` at levels
+    # 1..k. Default m_relay=M (backwards-compatible: triangulated chain).
+    # m_relay=1 yields the paper's original SPARSE LINEAR CHAIN (1
+    # relay per hop) and re-enables the positive-delta GDOP regime
+    # (Phase 7 follow-up "sparse-chain ABL").
+    n_per_level_relay = m_relay if m_relay is not None else M
+    next_id = 0
     for level in range(k + 1):
+        n_here = M if level == 0 else n_per_level_relay
         cx_l = level * step_m * dx
         cy_l = level * step_m * dy
-        # Rotate within-level triangle by a per-level offset so neighbours
-        # across levels don't perfectly align (keeps the trilateration
-        # geometry well-conditioned).
-        phase = level * (math.pi / M)
-        for i in range(M):
-            angle = 2 * math.pi * i / M + phase
-            x = cx_l + r_anchor_m * math.cos(angle)
-            y = cy_l + r_anchor_m * math.sin(angle)
+        phase = level * (math.pi / max(n_here, 1))
+        for i in range(n_here):
+            angle = 2 * math.pi * i / max(n_here, 1) + phase
+            radius = r_anchor_m if n_here > 1 else 0.0
+            x = cx_l + radius * math.cos(angle)
+            y = cy_l + radius * math.sin(angle)
             role = 'anchor' if level == 0 else 'follower'
             uavs.append({
-                'id': level * M + i,
+                'id': next_id,
                 'role': role,
                 'position': [round(x, 3), round(y, 3), float(altitude_m)],
                 'hop_target': level,
             })
+            next_id += 1
 
     # Compute UWB edges: any pair within r_comm
     edges = _compute_edges(uavs, r_comm_m)
-    # Test follower = first UAV in the final level
-    test_id = k * M if k > 0 else M  # k=0 -> id=M still works (extra anchor concept gone)
+    # Test follower = first UAV in the final level.
+    # Level 0 has M UAVs (ids 0..M-1); levels 1..k each have
+    # n_per_level_relay UAVs.
     if k == 0:
-        # For k=0, test = an anchor itself. Use id=0 (any anchor works).
-        test_id = 0
+        test_id = 0  # k=0 -> test against an anchor itself
+    else:
+        test_id = M + (k - 1) * n_per_level_relay
     anchor_ids = [u['id'] for u in uavs if u['role'] == 'anchor']
     observed_hop = _bfs_min_hops(test_id, anchor_ids, edges, len(uavs))
 
@@ -175,6 +184,9 @@ def _argparse() -> argparse.ArgumentParser:
     p.add_argument('--k', type=int, required=True,
                    help='target hop distance for the test follower')
     p.add_argument('--M', type=int, default=3, help='number of anchors')
+    p.add_argument('--m-relay', type=int, default=None,
+                   help='UAVs per follower level (default = M, '
+                        'triangulated chain; set 1 for sparse linear chain)')
     p.add_argument('--r-anchor-m', type=float, default=20.0,
                    help='radius of anchor cluster')
     p.add_argument('--r-comm-m', type=float, default=100.0,
@@ -193,9 +205,10 @@ def _argparse() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = _argparse().parse_args(argv)
     topo = generate_topology(
-        k=args.k, M=args.M, r_anchor_m=args.r_anchor_m,
-        r_comm_m=args.r_comm_m, step_m=args.step_m,
-        altitude_m=args.altitude_m, seed=args.seed,
+        k=args.k, M=args.M, m_relay=args.m_relay,
+        r_anchor_m=args.r_anchor_m, r_comm_m=args.r_comm_m,
+        step_m=args.step_m, altitude_m=args.altitude_m,
+        seed=args.seed,
     )
     out = json.dumps(topo, indent=2)
     if args.out == '-':

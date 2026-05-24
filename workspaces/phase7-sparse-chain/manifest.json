@@ -1,0 +1,22 @@
+{
+  "run_id": "phase7-sparse-chain",
+  "phase": 3,
+  "k_list": [
+    1,
+    2,
+    3
+  ],
+  "trials_per_k": 5,
+  "seed_base": 1000000,
+  "warmup_s": 20.0,
+  "trial_s": 30.0,
+  "sigma_uwb_m": 0.1,
+  "sigma_trn_m": 35.0,
+  "trn_period_s": 10.0,
+  "jobs": 2,
+  "total_trials": 15,
+  "started_at": "2026-05-24T22:17:00Z",
+  "completed": 15,
+  "finished_at": "2026-05-24T22:23:44Z",
+  "wall_time_s": 404.7
+}
