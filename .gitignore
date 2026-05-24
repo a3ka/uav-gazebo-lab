@@ -139,3 +139,11 @@ workspaces/phase7-sparse-chain/*
 !workspaces/phase7-sparse-chain/manifest.json
 !workspaces/phase7-sparse-chain/analysis.json
 !workspaces/phase7-sparse-chain/sweep.csv
+
+# Phase 3 v4 FINAL — supersedes v1/v2/v3
+!workspaces/phase3-prod-v4/
+workspaces/phase3-prod-v4/*
+!workspaces/phase3-prod-v4/manifest.json
+!workspaces/phase3-prod-v4/analysis.json
+!workspaces/phase3-prod-v4/cep_vs_hops.png
+!workspaces/phase3-prod-v4/sweep.csv

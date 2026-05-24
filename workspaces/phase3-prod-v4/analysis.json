@@ -1,0 +1,111 @@
+{
+  "csv": "workspaces/phase3-prod-v4/sweep.csv",
+  "total_trials": 250,
+  "per_k": [
+    {
+      "k": 0,
+      "n_trials": 50,
+      "cep50_mean": 20.3151,
+      "cep50_median": 17.0087,
+      "cep50_std": 11.3042,
+      "cep50_p25": 11.9453,
+      "cep50_p75": 25.6417,
+      "cep95_mean": 27.5468
+    },
+    {
+      "k": 1,
+      "n_trials": 50,
+      "cep50_mean": 29.7617,
+      "cep50_median": 22.3922,
+      "cep50_std": 23.1895,
+      "cep50_p25": 15.0353,
+      "cep50_p75": 35.6482,
+      "cep95_mean": 33.4289
+    },
+    {
+      "k": 2,
+      "n_trials": 50,
+      "cep50_mean": 33.6586,
+      "cep50_median": 27.5696,
+      "cep50_std": 19.9153,
+      "cep50_p25": 19.7075,
+      "cep50_p75": 45.168,
+      "cep95_mean": 35.4862
+    },
+    {
+      "k": 3,
+      "n_trials": 50,
+      "cep50_mean": 29.7225,
+      "cep50_median": 23.328,
+      "cep50_std": 21.5779,
+      "cep50_p25": 14.8523,
+      "cep50_p75": 39.8951,
+      "cep95_mean": 31.5761
+    },
+    {
+      "k": 5,
+      "n_trials": 50,
+      "cep50_mean": 29.8057,
+      "cep50_median": 28.2335,
+      "cep50_std": 19.0408,
+      "cep50_p25": 15.9519,
+      "cep50_p75": 37.9887,
+      "cep95_mean": 32.425
+    }
+  ],
+  "fits": {
+    "gdop": {
+      "model": "gdop",
+      "formula": "cep(k) = sigma_0 * (1+delta)^k",
+      "sigma_0": 19.3903,
+      "delta": 0.0878,
+      "rss": 33.100039,
+      "aic": 13.4505,
+      "predictions": [
+        19.3903,
+        21.0922,
+        22.9435,
+        24.9574,
+        29.5308
+      ]
+    },
+    "sqrt_hop": {
+      "model": "sqrt_hop",
+      "formula": "cep(k) = sigma_0 * sqrt(k + 1)",
+      "sigma_0": 13.2651,
+      "rss": 76.707554,
+      "aic": 15.6528,
+      "predictions": [
+        13.2651,
+        18.7597,
+        22.9758,
+        26.5302,
+        32.4927
+      ]
+    },
+    "linear": {
+      "model": "linear",
+      "formula": "cep(k) = a + b * k",
+      "a": 19.5572,
+      "b": 1.886,
+      "rss": 29.506033,
+      "aic": 12.8758,
+      "predictions": [
+        19.5572,
+        21.4432,
+        23.3292,
+        25.2152,
+        28.9871
+      ]
+    }
+  },
+  "best_fit_model": "linear",
+  "paper_pass_at_k3": {
+    "k3_available": true,
+    "k3_cep50_median": 23.328,
+    "k3_cep50_mean": 29.7225,
+    "n_trials": 50,
+    "threshold_m": 100.0,
+    "pass": true
+  }
+}

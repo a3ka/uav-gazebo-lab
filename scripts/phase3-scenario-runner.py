@@ -147,13 +147,17 @@ def build_nodes(
     # operating regime; Phase 6+ swaps the noise mock for true PX4
     # IMU pre-integration.
     init_rng = random.Random(int(topo.get('seed', 0)) * 7919 + 1)
-    sigma_follower_init = 2.0
-    # Anchors also get off-truth init -- without this, even wide
-    # anchor_self_sigma left iSAM2's linearization point AT truth so
-    # disabling TRN paradoxically IMPROVED CEP (Phase 7 ABL4-v2
-    # artefact). 30m init noise (mimics "anchor took off, IMU drifted
-    # before TRN lock") forces the system to actually USE TRN factors.
+    # Anchors get 30m init noise (mimics "anchor took off, IMU drifted
+    # before TRN lock"). Followers get 50m -- LARGER than anchors
+    # because followers have NO TRN absolute fix; their only path to
+    # absolute position is via UWB-graph anchored on TRN-equipped
+    # anchors. The previous 2m follower init was a scaffold artefact:
+    # followers started ~at truth so iSAM2's linearization never had
+    # to actually move them via UWB. With 50m init noise, depth-
+    # scaling reflects the actual GDOP / UWB-graph physics, not the
+    # init-near-truth seed.
     sigma_anchor_init = 30.0
+    sigma_follower_init = 50.0
 
     # Factor graph -- one per UAV
     for u in topo['uavs']:
