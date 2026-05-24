@@ -11,7 +11,9 @@
 #
 # Pass: exit 0 + "PX4 SITL OK".
 
-set -euo pipefail
+set -eo pipefail
+# Note: `-u` deliberately omitted -- /opt/ros/jazzy/setup.bash references
+# AMENT_TRACE_SETUP_FILES without a default, which trips strict-unset mode.
 
 CLEAN_DONE=0
 cleanup() {

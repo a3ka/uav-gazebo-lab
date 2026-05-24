@@ -11,7 +11,7 @@
 #
 # Pass criterion: exit 0 with "BRIDGE OK" printed. Anything else = fail.
 
-set -euo pipefail
+set -eo pipefail
 
 cleanup() {
     local rc=$?
