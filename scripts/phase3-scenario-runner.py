@@ -161,6 +161,13 @@ def build_nodes(
                 float(y) + init_rng.gauss(0.0, sigma_init_m),
                 float(z),
             ]
+        # anchor_self_sigma=50m (NOT 1m). Tight self-prior at truth was
+        # a scaffold artifact: real-world anchors do NOT know their own
+        # position -- they MUST rely on TRN to estimate it. With a 1m
+        # self-prior at truth, the TRN factor was redundant and the
+        # measured CEP collapsed to sub-meter values that are
+        # physically impossible (Phase 7 ABL4 finding). 50m self-prior
+        # means TRN noise actually propagates to the swarm estimate.
         nodes.append(FactorGraphNode(
             node_name=f'fg_u{u["id"]}',
             parameter_overrides=_params({
@@ -170,7 +177,7 @@ def build_nodes(
                 'update_rate_hz': 20.0,
                 'sigma_base': 50.0,
                 'reputation_eps': 0.01,
-                'anchor_self_sigma': 1.0,
+                'anchor_self_sigma': 50.0,
                 'follower_self_sigma': 200.0,
             }),
         ))

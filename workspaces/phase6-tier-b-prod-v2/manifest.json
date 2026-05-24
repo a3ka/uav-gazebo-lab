@@ -1,0 +1,23 @@
+{
+  "run_id": "phase6-tier-b-prod-v2",
+  "phase": 6,
+  "tier": "B",
+  "trials": 15,
+  "seed_base": 1000000,
+  "n_uavs": 50,
+  "m_anchors": 10,
+  "n_followers_init": 40,
+  "region_m": 300.0,
+  "r_comm_m": 100.0,
+  "n_victims": 3,
+  "t_first_event_s": 30.0,
+  "t_step_s": 30.0,
+  "profile_str": "30.0,0,anchor;60.0,1,anchor;90.0,2,anchor",
+  "t_warmup_s": 8.0,
+  "t_mission_s": 120.0,
+  "jobs": 2,
+  "started_at": "2026-05-24T21:38:22Z",
+  "completed": 15,
+  "finished_at": "2026-05-24T21:55:37Z",
+  "wall_time_s": 1035.2
+}

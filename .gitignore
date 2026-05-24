@@ -100,3 +100,18 @@ workspaces/phase7-abl4-notrn/*
 # OMC / Claude Code tooling state
 .omc/
 .claude/
+
+# Phase 3 v2 re-sweep with realistic scaffold
+!workspaces/phase3-prod-v2/
+workspaces/phase3-prod-v2/*
+!workspaces/phase3-prod-v2/manifest.json
+!workspaces/phase3-prod-v2/analysis.json
+!workspaces/phase3-prod-v2/cep_vs_hops.png
+!workspaces/phase3-prod-v2/sweep.csv
+
+# Phase 6 Tier B v2 with jitter
+!workspaces/phase6-tier-b-prod-v2/
+workspaces/phase6-tier-b-prod-v2/*
+!workspaces/phase6-tier-b-prod-v2/manifest.json
+!workspaces/phase6-tier-b-prod-v2/analysis.json
+!workspaces/phase6-tier-b-prod-v2/results.csv

@@ -41,13 +41,31 @@ layer is multi-day follow-up work.
 
 ## Tier B production sweep (N=50, M=10, 3 kills, 15 trials)
 
+### v1 (no jitter, baseline thundering-herd):
+
 | Metric | Median | Max | Paper budget | Pass? |
 |---|---|---|---|---|
 | **mission_survived** | 15/15 | — | True | ✅ **100%** |
 | total_attached_final | 40 / 40 | — | ≥39 | ✅ |
-| over_cap_interval_max (s) | **29.83** | 29.90 | < 5 | ❌ **6×** over budget |
-| rebal_latency_max (s) | **29.96** | 30.06 | < 10 | ❌ **3×** over budget |
+| over_cap_interval_max (s) | 29.83 | 29.90 | < 5 | ❌ 6× over budget |
+| rebal_latency_max (s) | 29.96 | 30.06 | < 10 | ❌ 3× over budget |
 | pass_trial (all criteria) | 0/15 | — | True | ❌ |
+
+### v2 (score_jitter=0.3 proportional, partial fix):
+
+| Metric | Median | Max | Paper budget | Pass? |
+|---|---|---|---|---|
+| **mission_survived** | 15/15 | — | True | ✅ **100%** |
+| total_attached_final | 40 / 40 | — | ≥39 | ✅ |
+| over_cap_interval_max (s) | **29.38** | 29.90 | < 5 | ❌ marginal improvement |
+| rebal_latency_max (s) | 29.94 | 30.09 | < 10 | ❌ |
+| pass_trial (all criteria) | 0/15 | — | True | ❌ |
+| **per-event split** | 6 / 15 trials had ≥1 event under 22 s (vs 0 / 15 in v1) | | | partial |
+
+Per-trial inspection: jitter improves about half the trials (over_cap
+drops from ~29.8 s to ~21.2 s for those events, indicating successful
+load-spreading on first attrition), but the worst case (anchor stays
+bunched until next kill forces redistribution) still happens.
 
 The mission-survival rate is the headline number — paper Pillar 6's
 "system stays alive under 22.5% attrition" claim is **validated 100%
@@ -78,6 +96,25 @@ distributed selection. The protocol eventually self-corrects
 (because the overloaded anchor advertises `capacity_free=0` on
 subsequent offers and falls in the ranking) BUT only after the NEXT
 event reshuffles the offer-arrival ordering.
+
+### v2 attempted fix: randomised score jitter
+
+`follower_node` now applies a `score_jitter` (default 0.3 == 30 %
+proportional std-dev) to each follower's selection score. This
+decorrelates the rankings so simultaneously-displaced followers no
+longer converge on the same anchor. Result: **partial improvement
+in ~half the trials** (event-isolated over_cap drops 29.8 s → 21 s),
+but the worst case (anchor stays bunched indefinitely after first
+attrition) still occurs. Mission survival unchanged at 100 %.
+
+**Full fix (NOT done — paper-v10 follow-up):** Anchor-side admission
+control. `anchor_node._on_attach_request` currently always accepts
+the attach unconditionally. Add `if len(self.followers_attached) >=
+self.target_capacity: return  # silently refuse` and require
+`follower_node` to add an ATTACH-timeout + retry loop on missing
+AttachAck. This is the textbook capacity-aware queuing pattern and
+would resolve the over_cap window deterministically. Estimated
+~1 day of work; not in this session.
 
 ---
 

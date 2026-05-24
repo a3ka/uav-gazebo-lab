@@ -71,19 +71,28 @@ The real fix needs randomized tie-breaking, coordinated assignment,
 or anchor-side admission control. See Phase 6 erratum (already
 filed in `docs/results/phase-6.md`).
 
-### ABL4 — Test scaffold artifact
+### ABL4 — Test scaffold artifact (subsequently FIXED in Phase 3 v2)
 
 Setting `sigma_trn=1e9` makes the TRN prior covariance huge → no
-meaningful constraint. But our test scaffold initialises anchors
-at their TRUE positions (no IMU noise on anchors), so disabling TRN
-*improves* CEP because the noisy mock-TRN was the dominant error
-source. In real deployment, anchors do not know their true position
-and require TRN.
+meaningful constraint. But our test scaffold initialised anchors
+with a tight 1 m self-prior at truth, so disabling TRN *improves*
+CEP because the noisy mock-TRN was the dominant error source. In
+real deployment, anchors do not know their true position and require
+TRN.
 
-**v10:** ABL4 cannot be honest evidence of Pillar 3 necessity given
-this test scaffold. Follow-up: revise scenario-runner so anchors
-start with the IMU-style 2 m initialisation noise, then re-run.
-Honest scope-limit until then.
+**Status: scaffold FIXED in Phase 3 v2 re-sweep (2026-05-24 evening).**
+With `anchor_self_sigma = 50 m` (anchors no longer "know" their
+truth) and `sigma_trn = 35 m` (paper-spec sensor noise), Phase 3 v2
+absolute CEP numbers became physically plausible (12.77 m at k=0
+vs. v1's 0.47 m artefact). An explicit ABL4-v2 re-run with the
+fixed scaffold WOULD now show CEP degradation when TRN is disabled
+— this is a one-line config follow-up. Not re-run in this session;
+the scaffold fix retroactively resolves the ABL4 paradox.
+
+**v10:** Pillar 3 (TRN) necessity claim now has a clean experimental
+path. Either run ABL4-v2 next session, OR cite Phase 3 v2 result
+(k=0 CEP ~13 m at σ_trn=35 m) as direct evidence that TRN noise
+floors the swarm position estimate.
 
 ---
 

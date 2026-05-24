@@ -59,6 +59,12 @@ class FollowerNode(Node):
         self.declare_parameter('alpha_rep', 0.35)
         self.declare_parameter('alpha_cap', 0.25)
         self.declare_parameter('target_capacity_norm', 10.0)
+        # Phase 6 thundering-herd fix: PROPORTIONAL jitter on selection
+        # score (multiplies base by 1 + sigma * N(0,1)). 0.3 ~= 30%
+        # std-dev randomisation -- enough to spread N=10+ simultaneously-
+        # displaced followers across multiple anchors but small enough
+        # to leave clear winners on top. See _score().
+        self.declare_parameter('score_jitter', 0.3)
         # Paper IV-C T_reject — anchor whose published reputation falls
         # below this triggers immediate failover (scenario S5) rather
         # than waiting for the t_timeout silence watchdog.
@@ -74,6 +80,7 @@ class FollowerNode(Node):
         self.alpha_cap = float(self.get_parameter('alpha_cap').value)
         self.capacity_norm = float(self.get_parameter('target_capacity_norm').value)
         self.t_reject = float(self.get_parameter('t_reject').value)
+        self.score_jitter = float(self.get_parameter('score_jitter').value)
 
         # State
         self.state = STATE_ATTACHED
@@ -261,7 +268,20 @@ class FollowerNode(Node):
         dz = offer.position.z - self.last_known_position[2]
         d = max(math.sqrt(dx * dx + dy * dy + dz * dz), 0.1)
         load = 1.0 - min(offer.capacity_free / self.capacity_norm, 1.0)
-        return self.alpha_prox / d + self.alpha_rep * offer.reputation + self.alpha_cap * (1.0 - load)
+        base = (self.alpha_prox / d
+                + self.alpha_rep * offer.reputation
+                + self.alpha_cap * (1.0 - load))
+        # Randomised tie-breaking: when many followers receive the same
+        # offer set simultaneously (Phase 6 attrition event), they
+        # otherwise compute identical scores -> all pick the SAME best
+        # anchor -> thundering-herd overload (Phase 7 ABL3 confirmed
+        # alpha_cap weight does not prevent this; the bunching is
+        # alpha_prox-dominated). PROPORTIONAL Gaussian jitter on the
+        # base score (default 30% std dev) decorrelates the rankings;
+        # absolute jitter is hard to size because base scores can range
+        # from ~0.005 (far anchor) to ~0.5 (close anchor).
+        import random as _r
+        return base * (1.0 + self.score_jitter * _r.gauss(0.0, 1.0))
 
     def _send_attach(self, offer: ReassignOffer) -> None:
         # attach_target was set by _close_offer_window. Cached publisher

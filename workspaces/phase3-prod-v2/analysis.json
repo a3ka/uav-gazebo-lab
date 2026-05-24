@@ -1,0 +1,111 @@
+{
+  "csv": "workspaces/phase3-prod-v2/sweep.csv",
+  "total_trials": 250,
+  "per_k": [
+    {
+      "k": 0,
+      "n_trials": 50,
+      "cep50_mean": 14.3245,
+      "cep50_median": 12.7703,
+      "cep50_std": 6.0301,
+      "cep50_p25": 10.0186,
+      "cep50_p75": 18.9469,
+      "cep95_mean": 19.6735
+    },
+    {
+      "k": 1,
+      "n_trials": 50,
+      "cep50_mean": 10.9943,
+      "cep50_median": 10.2813,
+      "cep50_std": 4.2763,
+      "cep50_p25": 7.8269,
+      "cep50_p75": 14.2559,
+      "cep95_mean": 13.6719
+    },
+    {
+      "k": 2,
+      "n_trials": 50,
+      "cep50_mean": 7.292,
+      "cep50_median": 6.7639,
+      "cep50_std": 3.7641,
+      "cep50_p25": 4.232,
+      "cep50_p75": 9.1601,
+      "cep95_mean": 9.1451
+    },
+    {
+      "k": 3,
+      "n_trials": 50,
+      "cep50_mean": 6.9206,
+      "cep50_median": 5.6511,
+      "cep50_std": 7.8341,
+      "cep50_p25": 4.1311,
+      "cep50_p75": 7.0829,
+      "cep95_mean": 12.932
+    },
+    {
+      "k": 5,
+      "n_trials": 50,
+      "cep50_mean": 6.4123,
+      "cep50_median": 4.4248,
+      "cep50_std": 8.1223,
+      "cep50_p25": 3.5716,
+      "cep50_p75": 7.3168,
+      "cep95_mean": 14.1405
+    }
+  ],
+  "fits": {
+    "gdop": {
+      "model": "gdop",
+      "formula": "cep(k) = sigma_0 * (1+delta)^k",
+      "sigma_0": 11.967,
+      "delta": -0.1962,
+      "rss": 2.505651,
+      "aic": 0.5456,
+      "predictions": [
+        11.967,
+        9.6189,
+        7.7316,
+        6.2145,
+        4.015
+      ]
+    },
+    "sqrt_hop": {
+      "model": "sqrt_hop",
+      "formula": "cep(k) = sigma_0 * sqrt(k + 1)",
+      "sigma_0": 3.8229,
+      "rss": 132.216985,
+      "aic": 18.375,
+      "predictions": [
+        3.8229,
+        5.4064,
+        6.6215,
+        7.6458,
+        9.3642
+      ]
+    },
+    "linear": {
+      "model": "linear",
+      "formula": "cep(k) = a + b * k",
+      "a": 11.6759,
+      "b": -1.6807,
+      "rss": 5.97765,
+      "aic": 4.8929,
+      "predictions": [
+        11.6759,
+        9.9951,
+        8.3144,
+        6.6337,
+        3.2723
+      ]
+    }
+  },
+  "best_fit_model": "gdop",
+  "paper_pass_at_k3": {
+    "k3_available": true,
+    "k3_cep50_median": 5.6511,
+    "k3_cep50_mean": 6.9206,
+    "n_trials": 50,
+    "threshold_m": 100.0,
+    "pass": true
+  }
+}

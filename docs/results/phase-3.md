@@ -1,10 +1,12 @@
 # Phase 3 — CEP vs Hops + Relay σ_k Refit results
 
-**Status:** ✅ COMPLETE 2026-05-23 (production sweep run on local 16-core CPU, JOBS=8)
+**Status:** ✅ COMPLETE 2026-05-24 (RE-RUN v2 with realistic scaffold; v1 had σ_trn=5m + anchor self-prior 1m which produced sub-meter CEP artefact, see decision register)
 **Hardware actual:** local CPU (no vision pipeline — TRN mocked per task 3.4)
 **Cost actual:** $0 (local box; no vast.ai needed for Phase 3)
-**Trials:** 1000 (k ∈ {0,1,2,3,5} × 200 trials)
-**Wall time:** 107 min (6446 s)
+**Trials:** 250 (k ∈ {0,1,2,3,5} × 50 trials; v1 had 1000 but the absolute
+numbers were artefact -- scope-equivalent v2 statistics are sufficient
+for the σ_k refit at smaller n)
+**Wall time:** 28 min (1650 s)
 **Spec source:** `docs/phase-3-spec.md`
 
 ### Reproducibility
@@ -83,60 +85,72 @@ Launched 2026-05-23 17:49 UTC, completed 19:37 UTC.
 JOBS=8 bash scripts/phase3-batch-campaign.sh
 ```
 
-### Per-cell results matrix
+### Per-cell results matrix (v2 — realistic scaffold)
 
-| k | n_trials | CEP_50 median (m) | CEP_50 mean (m) | std (m) | Q1 / Q3 (m) | Pass criterion |
-|---|---|---|---|---|---|---|
-| 0 | 200 | **0.466** | 0.495 | 0.23 | 0.32 / 0.62 | — (TRN-only baseline) |
-| 1 | 200 | **6.200** | 6.894 | 3.54 | 4.38 / 8.72 | — |
-| 2 | 200 | **7.723** | 8.486 | 4.91 | 5.10 / 10.87 | — |
-| 3 | 200 | **6.469** | 7.878 | 4.97 | 4.79 / 9.41 | ✅ **PASS** (paper IV-D: < 100 m) |
-| 5 | 200 | **5.254** | 5.565 | 2.78 | 4.03 / 6.61 | — |
+| k | n_trials | CEP_50 median (m) | CEP_50 mean (m) | Q1 / Q3 (m) | Pass criterion |
+|---|---|---|---|---|---|
+| 0 | 50 | **12.77** | 14.33 | 10.02 / 18.95 | — (TRN-only baseline) |
+| 1 | 50 | **10.28** | 10.99 | 7.83 / 14.26 | — |
+| 2 | 50 | **6.76** | 7.29 | 4.23 / 9.16 | — |
+| 3 | 50 | **5.65** | 6.92 | 4.13 / 7.08 | ✅ **PASS** (paper IV-D: < 100 m) |
+| 5 | 50 | **4.43** | 6.41 | 3.57 / 7.32 | — |
 
-Note that **CEP does not grow monotonically with k** under this
-triangulated topology (k=3 < k=2; k=5 < k=2). This is the most striking
-empirical finding of the sweep — see σ_k discussion below.
+**CEP decreases monotonically with k** under this dense triangulated
+topology — more UAVs participating in UWB triangulation provide more
+information than is lost to GDOP propagation. The PAPER's sparse-
+chain assumption (1 relay per hop ⇒ exponential GDOP) does not hold
+in dense topologies (M=3 trilateration peers per hop).
 
-### σ_k refit verdict (AIC, lower = better)
+### v1 → v2 scaffold deviation (load-bearing finding for paper-v10)
+
+The original v1 sweep (committed earlier in this session) reported
+CEP_50 at k=0 of **0.466m** — physically impossible given a TRN
+sensor noise of 5 m. Root cause: scenario_runner initialised
+`anchor_self_sigma=1.0` AND `sigma_trn=5.0`. Tight 1m self-prior at
+truth made the anchor's TRN factor redundant (anchor "knew" its own
+position for free). With both fixes — `anchor_self_sigma=50m` (real
+anchors do not know their own position) AND `sigma_trn=35m` (paper-
+spec sensor noise, NOT the 5m mock used in dev) — CEP at k=0 climbs
+to a plausible 12.77 m.
+
+Phase 7 ABL4 also flagged this artefact (CEP IMPROVED when TRN was
+disabled in v1 scaffold). v2 results above supersede v1 entirely.
+
+### σ_k refit verdict (AIC, lower = better) — v2
 
 | Rank | Model | Fit parameters | RSS | AIC | ΔAIC |
 |---|---|---|---|---|---|
-| 🥇 | **sqrt-hops** | σ_0 = 3.03 m | 21.23 | **9.23** | 0.00 |
-| 🥈 | linear | a = 3.75, b = 0.67 | 24.80 | 12.01 | +2.78 |
-| 🥉 | GDOP (paper family) | σ_0 = 1.73, **δ = 0.42** | 59.06 | 16.34 | +7.11 |
+| 🥇 | **GDOP (paper family) — INVERTED** | σ_0 = 11.97 m, **δ = -0.196** | 2.51 | **0.55** | 0.00 |
+| 🥈 | linear | a = 11.68, b = -1.68 | 5.98 | 4.89 | +4.34 |
+| 🥉 | sqrt-hops | σ_0 = 3.82 m | 132.22 | 18.38 | +17.83 |
 
 **Paper-v10 action — ERRATUM REQUIRED:** Paper IV-D's "conservative
-GDOP" claim `σ_k ≤ σ_0 · (1 + 0.15)^k` is **doubly invalid** at the
-empirical scale tested here:
+GDOP" claim `σ_k ≤ σ_0 · (1 + 0.15)^k` is **the wrong sign** under
+this lab's dense triangulated topology. The empirical best-fit GDOP
+has **NEGATIVE δ ≈ -0.20**, meaning CEP _shrinks_ ~20 % per hop as
+more UAVs join the triangulation pool. The exponential family
+itself still wins on AIC because the trend is genuinely shrinking
+geometrically, just in the opposite direction the paper assumed.
 
-1. **Wrong δ.** When the GDOP family is forced as the fit model,
-   empirical δ = 0.42, not 0.15 — paper's "conservative" 15 % growth
-   per hop is actually nearly 3× too optimistic for the chosen sigmas
-   (σ_uwb=0.1 m, σ_trn=5 m, paper-faithful TRN period 10 s).
-
-2. **Wrong family.** Even the corrected GDOP fits the data worse
-   (AIC=16.3) than the simpler sqrt-hops model (AIC=9.2) and the
-   linear model (AIC=12.0). Empirical data **plateau** around 5-8 m
-   regardless of hop count k>0 — exponential growth in k is not
-   observed at all.
-
-**Replacement formula for v10:**
+**Replacement formula for v10 (dense topology, M=3 trilateration
+peers per level):**
 ```
-CEP_50(k) ≈ 3.03 m · √(k + 1)            (1)
+CEP_50(k) ≈ 12.0 m · 0.80^k             (1)
 ```
-valid for densely-connected M=3 triangulated relay chains, σ_uwb=0.1 m,
-σ_trn=5 m, TRN period 10 s. Paper should retain the original GDOP
-formula as a hand-wave order-of-magnitude bound only, and quote (1)
-as the measured fit from this lab.
+valid for σ_uwb = 0.1 m, σ_trn = 35 m (paper sensor spec),
+TRN period = 10 s, M = 3 per level, dense all-pairs-within-r_comm
+UWB graph. The k=0 baseline is bounded by TRN noise averaged over
+the trial window (~σ_trn / √(n_fixes_per_anchor * M)).
 
-**Honest scope caveat for v10:** the plateau / sub-monotone CEP is
-specific to the triangulated chain topology used here (M=3
-trilateration peers per level). A linear chain (1 relay per level)
-would give the original paper's monotone-growth behavior — see the
-dev-log mention of the original linear-chain prototype, which had
-test followers stuck on an unobservable sphere. The empirical CEP
-plateau is therefore a **topology-conditioned property**, not a
-universal disproof of the GDOP family.
+**Honest scope caveat for v10:** the decreasing-CEP-with-k result
+is specific to dense triangulated topology. In a true linear
+chain (1 relay per hop, paper IV-D original assumption), GDOP
+propagation would give the paper's monotone increase. v10 should
+either:
+  (a) Constrain Pillar 3 claims to "dense topologies (M≥3 peers
+      per level)" and report (1) as the measured formula, or
+  (b) Re-run Phase 3 with explicit linear-chain topology to obtain
+      the original-paper regime (sparse-chain ABL — follow-up).
 
 ---
 
