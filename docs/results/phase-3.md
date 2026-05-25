@@ -145,21 +145,22 @@ re-runs each removed a different artefact:
 | 🥈 | **GDOP (paper family)** | σ_0 = 19.39 m, **δ = +0.088** | 33.10 | 13.45 | +0.57 |
 | 🥉 | sqrt-hops | σ_0 = 13.27 m | 76.71 | 15.65 | +2.78 |
 
-**Linear and GDOP are statistically tied** (ΔAIC < 1). Both fit the
-data essentially equally well; sqrt-hops is clearly worse.
+**Linear and GDOP are statistically TIED** (ΔAIC = 0.57 < 1). Both
+forms fit the data essentially equally well; sqrt-hops is clearly
+worse. NEITHER linear nor GDOP can be claimed as "the" winner — both
+are within model-selection uncertainty.
 
-**Paper-v10 action — confirms paper's exponential family with
-tighter-than-conservative empirical δ:**
+**Paper-v10 action — honest statistical-tie framing:**
 
-The empirical best-fit GDOP `σ_k ≈ 19.4 · (1.088)^k` validates the
-paper's exponential family and yields δ=**0.088**, which is
-**TIGHTER (less pessimistic) than the paper-stated conservative
-bound δ=0.15**. In words:
+> CEP growth with relay depth is mild and statistically consistent
+> with BOTH a linear model (a + b·k) and the paper's exponential
+> GDOP form (σ_0·(1+δ)^k), with ΔAIC < 1 separating them. Adopting
+> the GDOP form for continuity with the paper's original
+> formulation, the fitted δ = 0.088 lies well within the
+> conservative δ = 0.15 originally assumed.
 
-> Paper's δ=0.15 holds as a conservative upper bound; our empirical
-> refit measures δ=0.088 — CEP grows at 8.8% per hop, not the 15%
-> the paper assumed. The paper's GDOP family is correct; the
-> specific δ value can be tightened.
+This avoids overclaiming a single best fit when the data does not
+discriminate between linear and exponential at this sample size.
 
 **Replacement formula for v10:**
 ```

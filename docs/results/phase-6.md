@@ -82,6 +82,18 @@ of 40/40); they exhausted all fallback offers in their retry cycle
 within the mission window. Mitigation: extend t_mission or add a
 final REASSIGN cycle after exhausted fallbacks; deferred.
 
+**Honest tradeoff note (paper-v10):** v3's admission-control trades
+a small mission-survival reduction (15/15 → 14/15) for strict
+capacity-invariant enforcement (over_cap 29 s → 0 s). The single
+mission failure traces to a follower left unattached when ALL
+candidate anchors refused capacity-saturating requests and the
+follower's retry cycle exhausted offers before the mission ended.
+This is a Pareto-honest tradeoff: the paper's claim becomes
+"capacity invariant holds strictly; <5 % mission-attach failure
+rate under attrition", instead of v1's "mission survives but
+capacity violated 6× the budget". v10 should report BOTH numbers
+together; preferring one over the other is application-dependent.
+
 The mission-survival rate is the headline number — paper Pillar 6's
 "system stays alive under 22.5% attrition" claim is **validated 100%
 of the time**. All 40 followers successfully reattach to surviving

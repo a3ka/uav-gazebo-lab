@@ -161,3 +161,4 @@ workspaces/phase8-prod/*
 !workspaces/phase8-prod/comparison.json
 !workspaces/phase8-prod/raft_t*.json
 !workspaces/phase8-prod/ours_t*.json
+!workspaces/phase8-prod/byz_t0.json

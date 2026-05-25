@@ -1,0 +1,7 @@
+{"n_members": 5, "byzantine_id": 0,
+ "total_heartbeats": 19,
+ "byzantine_heartbeats": 19,
+ "honest_heartbeats": 0,
+ "byzantine_dominates": true,
+ "honest_leader_emerged": false,
+ "t_first_honest_us": null}

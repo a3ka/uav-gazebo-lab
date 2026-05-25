@@ -76,6 +76,14 @@ class RaftNode(Node):
         self.declare_parameter('heartbeat_period_s', 1.0)
         self.declare_parameter('jitter_max_s', 1.0)
         self.declare_parameter('seed', 0)
+        # Byzantine attack mode (Phase 8 capability-gap comparison).
+        # When true, this node CONSTANTLY broadcasts heartbeat with
+        # leader_id = self regardless of its actual Raft state, term,
+        # or vote history. Mimics a Byzantine "leader-claimer" that
+        # tries to monopolise cluster leadership. Raft has no mechanism
+        # to challenge heartbeat authenticity; honest survivors see
+        # this stream and their election timer never expires.
+        self.declare_parameter('byzantine', False)
 
         self.id = int(self.get_parameter('node_id').value)
         self.n_members = int(self.get_parameter('n_members').value)
@@ -84,6 +92,7 @@ class RaftNode(Node):
         self.jitter_max = float(self.get_parameter('jitter_max_s').value)
         seed = int(self.get_parameter('seed').value)
         self.rng = random.Random(seed) if seed else random.Random()
+        self.byzantine = bool(self.get_parameter('byzantine').value)
 
         self.state = STATE_FOLLOWER
         self.term = 0
@@ -205,6 +214,20 @@ class RaftNode(Node):
 
     def _tick(self) -> None:
         now = time.monotonic()
+        # Byzantine: lie about being leader regardless of state. Honest
+        # subscribers reset their election timer on every fake
+        # heartbeat -> cluster cannot elect an honest leader.
+        if self.byzantine:
+            if now - self.last_heartbeat_t >= self.heartbeat_period:
+                # Fake term=1 (or always one above what we last saw, but
+                # term=1 is enough to mimic "rightful initial leader").
+                hb = RaftHeartbeat()
+                hb.timestamp = int(time.time() * 1_000_000)
+                hb.leader_id = self.id
+                hb.term = max(self.term, 1)
+                self.pub_heartbeat.publish(hb)
+                self.last_heartbeat_t = now
+            return
         if self.state == STATE_LEADER:
             if now - self.last_heartbeat_t >= self.heartbeat_period:
                 self._broadcast_heartbeat()
