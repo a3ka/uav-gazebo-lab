@@ -29,6 +29,14 @@ trap cleanup EXIT INT TERM
 source /opt/ros/jazzy/setup.bash
 source /workspace/ros2_ws/install/setup.bash
 
+# Force UDP-only FastDDS transport for ALL spawned processes. Default
+# shared-memory transport shares /dev/shm state between processes;
+# SIGKILL on one (the leader being killed) corrupts the watcher's
+# rclpy context with "rcl_init not called or rcl_shutdown was called"
+# errors. UDP isolation costs ~loopback latency only (< 100us), well
+# below our ms-scale election timing.
+export FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+
 echo "[1] launching $N raft_nodes..."
 for i in $(seq 0 $((N - 1))); do
     setsid ros2 run uav_swarm_nodes raft_node --ros-args \
@@ -61,8 +69,13 @@ echo "[2] initial leader detected via heartbeat: raft_$INITIAL_LEADER"
 # leader's heartbeats arrive before we're listening), then kill the
 # leader, then poll the file.
 ECHO_FILE=/tmp/raft_hb_stream.$$
-stdbuf -oL timeout 35 ros2 topic echo /raft/heartbeat \
-    uav_swarm_msgs/msg/RaftHeartbeat > "$ECHO_FILE" 2>/dev/null &
+# Python subscriber instead of `ros2 topic echo`: the CLI tool had
+# reproducible buffering + livelinness artefacts under publisher-
+# death -> new-publisher-emerge cycles (file stayed empty through
+# 30s of polling even when the cluster had elected a new leader).
+FASTDDS_BUILTIN_TRANSPORTS=UDPv4 \
+python3 /workspace/uav-gazebo-lab/scripts/phase8-heartbeat-watcher.py \
+    --max-seconds 35 > "$ECHO_FILE" 2>"${ECHO_FILE}.err" &
 ECHO_PID=$!
 PIDS+=("$ECHO_PID")
 sleep 1.5   # let subscription discover publishers
@@ -77,13 +90,17 @@ pkill -9 -f "node_id:=${INITIAL_LEADER} " 2>/dev/null
 echo "[3] killed leader raft_$INITIAL_LEADER at $T_KILL_UNIX"
 RECOVERY=""
 NEW_LEADER=""
-T_DEADLINE=$(awk -v t="$T_KILL_UNIX" 'BEGIN{print t + 30}')
+# printf "%.6f" -- awk's default `print` for >1e7 reformats to
+# scientific notation (1.77971e+09 instead of 1779710680.81),
+# losing precision and making the comparison "now > deadline" fire
+# immediately on the first iteration. Force fixed-point output.
+T_DEADLINE=$(awk -v t="$T_KILL_UNIX" 'BEGIN{printf "%.6f", t + 30}')
 while :; do
     NOW=$(date +%s.%N)
     if awk -v n="$NOW" -v d="$T_DEADLINE" 'BEGIN{exit !(n > d)}'; then break; fi
     sleep 0.5
-    # Read latest leader_id line from the stream
-    LID=$(grep '^leader_id:' "$ECHO_FILE" 2>/dev/null | tail -1 | awk '{print $2}')
+    # Watcher format: "HB <ts> leader=X term=Y"
+    LID=$(grep '^HB ' "$ECHO_FILE" 2>/dev/null | tail -1 | sed -n 's/.*leader=\([0-9][0-9]*\).*/\1/p')
     if [[ -n "$LID" && "$LID" != "$INITIAL_LEADER" ]]; then
         T_NEW=$(date +%s.%N)
         RECOVERY=$(awk -v t="$T_KILL_UNIX" -v n="$T_NEW" 'BEGIN{print n - t}')

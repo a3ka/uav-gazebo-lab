@@ -43,9 +43,22 @@ import time
 
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import HistoryPolicy, QoSProfile, ReliabilityPolicy
 from std_msgs.msg import Float64
 
 from uav_swarm_msgs.msg import RaftHeartbeat, RaftVoteGrant, RaftVoteRequest
+
+
+# BEST_EFFORT + depth 1 on the heartbeat channel: when the leader
+# dies, no buffered heartbeats should keep arriving at survivors and
+# resetting their election timer. RELIABLE-default left up to ~100
+# msgs queued, making the cluster appear "still has leader" for tens
+# of seconds after the actual leader process exited -- survivors
+# never silence-detected.
+_HB_QOS = QoSProfile(
+    reliability=ReliabilityPolicy.BEST_EFFORT,
+    history=HistoryPolicy.KEEP_LAST, depth=1,
+)
 
 
 STATE_FOLLOWER = 'F'
@@ -80,13 +93,15 @@ class RaftNode(Node):
         self.next_election_t = self._compute_next_election_t()
 
         self.create_subscription(RaftHeartbeat, '/raft/heartbeat',
-                                 self._on_heartbeat, 50)
+                                 self._on_heartbeat, _HB_QOS)
         self.create_subscription(RaftVoteRequest, '/raft/vote/req',
                                  self._on_vote_req, 50)
         self.create_subscription(RaftVoteGrant, '/raft/vote/grant',
                                  self._on_vote_grant, 50)
 
-        self.pub_heartbeat = self.create_publisher(RaftHeartbeat, '/raft/heartbeat', 50)
+        self.pub_heartbeat = self.create_publisher(
+            RaftHeartbeat, '/raft/heartbeat', _HB_QOS
+        )
         self.pub_vote_req = self.create_publisher(RaftVoteRequest, '/raft/vote/req', 50)
         self.pub_vote_grant = self.create_publisher(RaftVoteGrant, '/raft/vote/grant', 50)
         # Per-node "I became leader at this monotonic time" channel

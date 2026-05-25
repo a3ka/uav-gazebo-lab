@@ -140,6 +140,19 @@ class AnchorNode(Node):
 
     def _on_attach_request(self, msg: ReassignRequest) -> None:
         fid = int(msg.follower_id)
+        # Admission control (Phase 6 thundering-herd fix): refuse the
+        # attach if accepting would push n_attached above target_capacity.
+        # Idempotent re-attach of an already-attached follower is OK and
+        # ALWAYS accepted (capacity invariant unchanged). Refused
+        # followers will retry via their ATTACH-timeout path and pick the
+        # next-best offer.
+        if (fid not in self.followers_attached
+                and len(self.followers_attached) >= self.target_capacity):
+            self.get_logger().info(
+                f'anchor {self.anchor_id}: REFUSED attach from follower {fid} '
+                f'(full at {len(self.followers_attached)}/{self.target_capacity})'
+            )
+            return
         self.followers_attached.add(fid)
         ack = AttachAck()
         ack.timestamp = int(time.time() * 1_000_000)

@@ -65,6 +65,14 @@ class FollowerNode(Node):
         # displaced followers across multiple anchors but small enough
         # to leave clear winners on top. See _score().
         self.declare_parameter('score_jitter', 0.3)
+        # Phase 6 admission-control retry: when the chosen anchor refuses
+        # the attach (because it's already at target_capacity), the
+        # follower waits this long for an AttachAck before falling back
+        # to the next-best offer. 2 s is wide enough to cover the
+        # normal sub-200ms ACK round-trip even under N=50 load yet
+        # short enough that the worst-case "all anchors refused" cycle
+        # completes within the 5 s capacity-invariant budget.
+        self.declare_parameter('attach_timeout_s', 2.0)
         # Paper IV-C T_reject — anchor whose published reputation falls
         # below this triggers immediate failover (scenario S5) rather
         # than waiting for the t_timeout silence watchdog.
@@ -81,6 +89,8 @@ class FollowerNode(Node):
         self.capacity_norm = float(self.get_parameter('target_capacity_norm').value)
         self.t_reject = float(self.get_parameter('t_reject').value)
         self.score_jitter = float(self.get_parameter('score_jitter').value)
+        self.attach_timeout_s = float(self.get_parameter('attach_timeout_s').value)
+        self._ranked_offers: list = []
 
         # State
         self.state = STATE_ATTACHED
@@ -252,15 +262,48 @@ class FollowerNode(Node):
             self.state = STATE_ATTACHED
             return
 
-        # F4 Selection: S_reassign = a_p/d + a_r * R + a_c * (1 - L)
-        best_offer = max(self.offers_received, key=self._score)
-        self.attach_target = int(best_offer.anchor_id)
+        # F4 Selection: S_reassign = a_p/d + a_r * R + a_c * (1 - L).
+        # Sort offers by score DESC so we can fall back to next-best on
+        # ATTACH-timeout (Phase 6 admission-control retry path).
+        self._ranked_offers = sorted(
+            self.offers_received, key=self._score, reverse=True
+        )
+        self._try_next_attach()
+
+    def _try_next_attach(self) -> None:
+        """Pop the best remaining offer and send ATTACH_REQUEST. On
+        attach_timeout_s with no AttachAck, fall back to next offer.
+        If all offers exhausted, restart REASSIGN cycle."""
+        if not self._ranked_offers:
+            # No more candidates -- back to DETECTING for a fresh round
+            self.get_logger().warning(
+                f'follower {self.follower_id}: all {len(self.offers_received)} '
+                f'offers exhausted (likely all refused due to admission control); '
+                f'restarting REASSIGN cycle'
+            )
+            self.last_distilled_t = time.monotonic() - self.t_timeout - 0.1
+            self.state = STATE_ATTACHED
+            return
+        offer = self._ranked_offers.pop(0)
+        self.attach_target = int(offer.anchor_id)
         self.state = STATE_ATTACHING
         self.get_logger().info(
-            f'follower {self.follower_id}: selected anchor {self.attach_target} '
-            f'(score={self._score(best_offer):.3f}, considered {len(self.offers_received)})'
+            f'follower {self.follower_id}: trying anchor {self.attach_target} '
+            f'(score={self._score(offer):.3f}, {len(self._ranked_offers)} fallbacks)'
         )
-        self._send_attach(best_offer)
+        self._send_attach(offer)
+        # Schedule timeout for this attempt
+        self.create_timer(self.attach_timeout_s, self._attach_timeout_tick)
+
+    def _attach_timeout_tick(self) -> None:
+        if self.state != STATE_ATTACHING:
+            return  # Already ACKed
+        self.get_logger().warning(
+            f'follower {self.follower_id}: ATTACH to anchor {self.attach_target} '
+            f'timed out (likely refused), falling back'
+        )
+        self.state = STATE_DETECTING   # so _try_next_attach can transition
+        self._try_next_attach()
 
     def _score(self, offer: ReassignOffer) -> float:
         dx = offer.position.x - self.last_known_position[0]

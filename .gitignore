@@ -147,3 +147,17 @@ workspaces/phase3-prod-v4/*
 !workspaces/phase3-prod-v4/analysis.json
 !workspaces/phase3-prod-v4/cep_vs_hops.png
 !workspaces/phase3-prod-v4/sweep.csv
+
+# Phase 6 Tier B v3 (admission control + ATTACH-timeout retry)
+!workspaces/phase6-tier-b-prod-v3/
+workspaces/phase6-tier-b-prod-v3/*
+!workspaces/phase6-tier-b-prod-v3/manifest.json
+!workspaces/phase6-tier-b-prod-v3/analysis.json
+!workspaces/phase6-tier-b-prod-v3/results.csv
+
+# Phase 8 production comparison
+!workspaces/phase8-prod/
+workspaces/phase8-prod/*
+!workspaces/phase8-prod/comparison.json
+!workspaces/phase8-prod/raft_t*.json
+!workspaces/phase8-prod/ours_t*.json

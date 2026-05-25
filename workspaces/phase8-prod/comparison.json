@@ -1,0 +1,18 @@
+{
+  "raft": {
+    "n": 10,
+    "min": 5.0837,
+    "median": 5.0865,
+    "mean": 5.0858,
+    "max": 5.0876
+  },
+  "ours": {
+    "n": 10,
+    "min": 6.066,
+    "median": 6.08,
+    "mean": 6.077,
+    "max": 6.0833
+  },
+  "n_members": 5,
+  "trials_per_protocol": 10
+}

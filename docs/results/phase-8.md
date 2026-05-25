@@ -1,17 +1,73 @@
 # Phase 8 — SwarmRaft Baseline Comparison results
 
-**Status:** 🟡 INFRASTRUCTURE COMPLETE, comparison campaign DEFERRED
+**Status:** ✅ COMPLETE 2026-05-25 (production comparison sweep done)
 **Hardware actual:** local CPU
 **Cost actual:** $0
+**Trials:** 10 per protocol × 2 protocols = 20 trials
+**Wall time:** 5 min
 **Spec source:** `docs/phase-8-spec.md`
 
-This phase implemented a minimum-viable Raft-style leader-election
-baseline (`raft_node`) and the comparison-trial scaffolding
-(`phase8-raft-trial.sh`, `phase8-campaign.sh`), but did not produce
-the production comparison-sweep numbers. The Raft node passes
-INITIAL leader election cleanly; the recovery-after-leader-kill path
-hits a heartbeat-queue / executor-scheduling artifact under
-single-process rclpy that prevents reliable measurement.
+### Reproducibility
+
+| Artefact | Pin |
+|---|---|
+| Docker image | `uav-lab:cpu` |
+| Sweep config | N=5 raft/anchor members per trial, T_kill=7s, 10 trials each protocol |
+| Raw data | `workspaces/phase8-prod/{raft_t*.json, ours_t*.json, comparison.json}` |
+| Transport | FASTDDS_BUILTIN_TRANSPORTS=UDPv4 (process-isolated DDS; shared-memory transport corrupted rclpy contexts on peer SIGKILL) |
+| Heartbeat QoS | BEST_EFFORT depth=1 (default RELIABLE buffered stale heartbeats; survivors never silence-detected) |
+
+### Bugs fixed during bring-up (decision register)
+
+| Issue | Root cause | Fix |
+|---|---|---|
+| Survivors never fired election after leader kill | Default rclpy RELIABLE QoS buffered ~50 heartbeats; subscribers kept resetting election timer | BEST_EFFORT QoS depth=1 on /raft/heartbeat (both pub + sub) |
+| Watcher rclpy context invalidated immediately after peer SIGKILL | FastDDS shared-memory transport corrupted on peer crash | `FASTDDS_BUILTIN_TRANSPORTS=UDPv4` for all trial-spawned processes |
+| Polling loop broke after 1 iteration ("FAIL no new leader") | `awk 'BEGIN{print t+30}'` reformatted Unix time to scientific notation (1.77971e+09), comparison `now > deadline` fired immediately | `awk '{printf "%.6f", ...}'` to force fixed-point |
+| `ros2 topic echo` buffering missed messages | CLI tool's livelinness behaviour under publisher death | Replaced with `phase8-heartbeat-watcher.py` (Python subscriber, controlled flush) |
+
+---
+
+## Production comparison results
+
+| Protocol | n | min (s) | median (s) | mean (s) | max (s) |
+|---|---|---|---|---|---|
+| **Raft baseline** (leader election only) | 10 | 5.084 | **5.087** | 5.086 | 5.088 |
+| **Ours** (Phase 4 anchor failover) | 10 | 6.066 | **6.080** | 6.077 | 6.083 |
+
+Both protocols are TIGHTLY clustered (std-dev < 10 ms) — single-
+threaded rclpy + 5 s deterministic timeouts give very predictable
+behaviour at N=5.
+
+**Result: Raft baseline is ~1.0 s FASTER** than our protocol at this
+scale. Both share the 5 s detection latency (election_timeout in
+Raft, t_timeout in ours); the additional ~1 s in our protocol comes
+from the F2-F5 capacity-coordination payload (REASSIGN → OFFER →
+ATTACH → ATTACH_ACK) that Raft does NOT do.
+
+### Honest interpretation for paper-v10
+
+Naive read: "Raft is faster." More precise read:
+
+* Raft's leader-election: 1 message round-trip after timeout.
+* Ours: 3-message protocol (REASSIGN/OFFER/ATTACH) + per-follower
+  capacity-aware re-assignment in the same window.
+
+The ~1 s gap is the cost of doing the *additional* coordination work
+Raft does NOT do. Comparing election-only-to-election-only, our
+detection-and-vote phase is comparable to Raft's (~5 s watchdog +
+~80 ms vote = ~5.08 s in our F2). The ~1 s overhead is amortised
+across the per-follower ATTACH coordination that the paper's
+problem statement requires.
+
+**Recommended v10 framing:**
+
+> "Our protocol's median switching time at N=5 is 6.08 s versus 5.09 s
+> for a Raft leader-election baseline. The ~1 s gap reflects our
+> additional capacity-aware re-assignment payload (per-follower
+> ATTACH + ATTACH_ACK), which Raft does not provide. A Raft-based
+> implementation that adds equivalent per-follower coordination
+> would consume the gap; we leave this comparison to future work."
 
 ---
 

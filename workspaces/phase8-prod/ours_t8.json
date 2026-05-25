@@ -1,0 +1,23 @@
+{
+  "scenario": "S1",
+  "n_anchors": 5,
+  "n_followers": 1,
+  "victim_anchor_id": 0,
+  "t_death_unix": 1779711041.362,
+  "t_steady_s": 4.0,
+  "t_pass_budget_s": 10.0,
+  "t_timeout_s": 5.0,
+  "pass_threshold_s": 15.0,
+  "wall_time_s": 15.5,
+  "per_follower": [
+    {
+      "follower_id": 0,
+      "switching_time_s": 6.0820886343717575,
+      "detection_ok": true
+    }
+  ],
+  "n_pass": 1,
+  "n_total": 1,
+  "pass_rate": 1.0,
+  "switching_time_median_s": 6.0821
+}
