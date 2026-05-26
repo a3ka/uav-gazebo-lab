@@ -93,14 +93,12 @@ start, manifest of sweep parameters) are in `docs/results/phase-{1..8}.md`.
 bft-uav-validation-lab/
 ├── README.md                            ← this file
 ├── LICENSE                              ← MIT
-├── CLAUDE.md                            ← project conventions
 ├── CODE_TO_CLAIM_MAPPING.md             ← paper-claim → workspace-file map
 ├── docs/
 │   ├── VALIDATION_PLAN.md               ← locked 9-phase plan + stack
 │   ├── phase-{2..8}-spec.md             ← per-phase specs
 │   ├── poo-algorithm-spec.md            ← Phase 1 algorithm spec
 │   ├── results/phase-{1..8}.md          ← per-phase results docs (reproducibility pins)
-│   ├── v10_access/                      ← submission artefacts (paper, cover letter, etc.)
 │   └── reference/                       ← frozen paper versions for diff reference
 ├── docker/
 │   ├── Dockerfile.cpu                   ← uav-lab:cpu recipe
@@ -147,7 +145,7 @@ This is a measurement project, not a discovery project.
    infeasible on a single workstation and are reviewer-naive proposals
    that should be redirected to the two-tier methodology.
 
-See `CLAUDE.md` for the full conventions list and `docs/VALIDATION_PLAN.md`
+See `docs/VALIDATION_PLAN.md`
 for the per-phase specification and pass criteria.
 
 ## Citation

@@ -5,7 +5,7 @@ document records the exact `workspaces/<sweep>/` artefact and `jq` query that
 produced the number. If a reviewer challenges any value, this is the table to
 open.
 
-The paper file is `docs/v10_access/BFT_UAV_Swarm_Paper_v10_access.tex`.
+The paper is the IEEE Access submission (companion to this code release).
 
 ---
 
