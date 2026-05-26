@@ -1,28 +1,11 @@
 cff-version: 1.2.0
-message: "If you use this software, please cite both the manuscript and this release."
-title: "bft-uav-validation-lab"
-type: software
+message: "If you use this software, please cite it as below."
 authors:
-  - family-names: "Kalynovskyi"
-    given-names: "Oleksandr"
-    email: "kalinovsky.research@proton.me"
-    orcid: "https://orcid.org/0009-0009-1437-3252"
-version: "1.3.2"
-date-released: "2026-05-26"
-repository-code: "https://github.com/ok-research/bft-uav-validation-lab"
+  - family-names: Kalynovskyi
+    given-names: Oleksandr
+    orcid: https://orcid.org/0009-0009-1437-3252
+title: "bft-uav-validation-lab"
+version: 1.4.0
+date-released: 2026-05-26
 url: "https://github.com/ok-research/bft-uav-validation-lab"
-license: "MIT"
-keywords:
-  - "UAV swarm"
-  - "Byzantine fault tolerance"
-  - "GNSS-denied navigation"
-  - "cooperative localization"
-  - "factor graph"
-  - "GTSAM"
-  - "iSAM2"
-  - "terrain-referenced navigation"
-  - "reputation system"
-  - "ROS2"
-  - "Gazebo"
-  - "PX4"
-  - "reproducibility"
+license: MIT
