@@ -1,11 +1,8 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
+title: bft-uav-validation-lab
+version: 1.5.0
+date-released: 2026-05-26
 authors:
   - family-names: Kalynovskyi
     given-names: Oleksandr
-    orcid: https://orcid.org/0009-0009-1437-3252
-title: "bft-uav-validation-lab"
-version: 1.4.0
-date-released: 2026-05-26
-url: "https://github.com/ok-research/bft-uav-validation-lab"
-license: MIT
