@@ -14,8 +14,8 @@
       - comm_logger_node: logs subscribed-topic byte sizes and send
         rates (feeds Phase 0 item 10 comm-complexity check).
   </description>
-  <maintainer email="lab@uav-gazebo-lab.local">uav-gazebo-lab</maintainer>
-  <license>Apache-2.0</license>
+  <maintainer email="kalinovsky.research@proton.me">Oleksandr Kalynovskyi</maintainer>
+  <license>MIT</license>
 
   <depend>rclpy</depend>
   <depend>geometry_msgs</depend>

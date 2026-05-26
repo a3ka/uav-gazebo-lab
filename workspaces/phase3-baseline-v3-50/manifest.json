@@ -1,0 +1,21 @@
+{
+  "run_id": "phase3-baseline-v3-50",
+  "phase": 3,
+  "k_list": [
+    0,
+    3
+  ],
+  "trials_per_k": 50,
+  "seed_base": 1000000,
+  "warmup_s": 20.0,
+  "trial_s": 30.0,
+  "sigma_uwb_m": 0.1,
+  "sigma_trn_m": 35.0,
+  "trn_period_s": 10.0,
+  "jobs": 8,
+  "total_trials": 100,
+  "started_at": "2026-05-26T12:28:14Z",
+  "completed": 100,
+  "finished_at": "2026-05-26T12:39:20Z",
+  "wall_time_s": 665.5
+}

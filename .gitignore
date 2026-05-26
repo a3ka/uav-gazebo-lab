@@ -26,66 +26,6 @@ datasets/*.tif
 datasets/*.jp2
 datasets/*.SAFE/
 
-# Per-run workspaces (bags + metrics) — long-term storage handled separately
-workspaces/*
-!workspaces/.gitkeep
-
-# Phase 3 production sweep artefacts: all small (<100 KB each), all
-# load-bearing for the paper-v10 erratum claim. Raw sweep.csv (81 KB)
-# stays in git so reviewers can re-run the analyzer without
-# regenerating the full sweep.
-!workspaces/phase3-prod/
-workspaces/phase3-prod/*
-!workspaces/phase3-prod/manifest.json
-!workspaces/phase3-prod/analysis.json
-!workspaces/phase3-prod/cep_vs_hops.png
-!workspaces/phase3-prod/sweep.csv
-
-# Phase 4 production sweep artefacts (~117 KB total, all reproducibility-bearing)
-!workspaces/phase4-prod/
-workspaces/phase4-prod/*
-!workspaces/phase4-prod/manifest.json
-!workspaces/phase4-prod/analysis.json
-!workspaces/phase4-prod/switching_distributions.png
-!workspaces/phase4-prod/results.csv
-
-# Phase 5 production sweep artefacts (~52 KB total)
-!workspaces/phase5-prod/
-workspaces/phase5-prod/*
-!workspaces/phase5-prod/manifest.json
-!workspaces/phase5-prod/analysis.json
-!workspaces/phase5-prod/detect_dist.png
-!workspaces/phase5-prod/results.csv
-
-# Phase 6 Tier B production sweep artefacts
-!workspaces/phase6-tier-b-prod/
-workspaces/phase6-tier-b-prod/*
-!workspaces/phase6-tier-b-prod/manifest.json
-!workspaces/phase6-tier-b-prod/analysis.json
-!workspaces/phase6-tier-b-prod/results.csv
-
-# Phase 7 ablation artefacts (4 variants, small CSVs + analyses)
-!workspaces/phase7-abl1-nospoof/
-workspaces/phase7-abl1-nospoof/*
-!workspaces/phase7-abl1-nospoof/manifest.json
-!workspaces/phase7-abl1-nospoof/analysis.json
-!workspaces/phase7-abl1-nospoof/results.csv
-!workspaces/phase7-abl2-nofailover/
-workspaces/phase7-abl2-nofailover/*
-!workspaces/phase7-abl2-nofailover/manifest.json
-!workspaces/phase7-abl2-nofailover/analysis.json
-!workspaces/phase7-abl2-nofailover/results.csv
-!workspaces/phase7-abl3-noloadbal/
-workspaces/phase7-abl3-noloadbal/*
-!workspaces/phase7-abl3-noloadbal/manifest.json
-!workspaces/phase7-abl3-noloadbal/analysis.json
-!workspaces/phase7-abl3-noloadbal/results.csv
-!workspaces/phase7-abl4-notrn/
-workspaces/phase7-abl4-notrn/*
-!workspaces/phase7-abl4-notrn/manifest.json
-!workspaces/phase7-abl4-notrn/analysis.json
-!workspaces/phase7-abl4-notrn/sweep.csv
-
 # Secrets
 .env
 .env.*
@@ -101,46 +41,35 @@ workspaces/phase7-abl4-notrn/*
 .omc/
 .claude/
 
-# Phase 3 v2 re-sweep with realistic scaffold
-!workspaces/phase3-prod-v2/
-workspaces/phase3-prod-v2/*
-!workspaces/phase3-prod-v2/manifest.json
-!workspaces/phase3-prod-v2/analysis.json
-!workspaces/phase3-prod-v2/cep_vs_hops.png
-!workspaces/phase3-prod-v2/sweep.csv
+# =========================================================================
+# Per-run workspaces — selective whitelist of FINAL production sweeps only.
+# All paper-v10 IEEE Access §VI/§VII headline numbers trace to one of the
+# directories below; artefact / superseded versions (v1/v2/v3 of various
+# phases) remain on local disk for the author but are NOT public-release
+# artefacts and are excluded from this repository's git history.
+# =========================================================================
 
-# Phase 6 Tier B v2 with jitter
-!workspaces/phase6-tier-b-prod-v2/
-workspaces/phase6-tier-b-prod-v2/*
-!workspaces/phase6-tier-b-prod-v2/manifest.json
-!workspaces/phase6-tier-b-prod-v2/analysis.json
-!workspaces/phase6-tier-b-prod-v2/results.csv
+# Default: exclude all workspaces.
+workspaces/*
+!workspaces/.gitkeep
 
-# Phase 7 ABL4-v3 (TRN-disabled with anchor-init noise fix)
-!workspaces/phase7-abl4-notrn-v2/
-workspaces/phase7-abl4-notrn-v2/*
-!workspaces/phase7-abl4-notrn-v2/manifest.json
-!workspaces/phase7-abl4-notrn-v2/analysis.json
-!workspaces/phase7-abl4-notrn-v2/sweep.csv
-!workspaces/phase7-abl4-notrn-v3/
-workspaces/phase7-abl4-notrn-v3/*
-!workspaces/phase7-abl4-notrn-v3/manifest.json
-!workspaces/phase7-abl4-notrn-v3/sweep.csv
+# Phase 1 — Proof-of-Observation FAR/FRR sweep (500 honest + 500 byzantine trials)
+# Headline: AUC = 0.9996, FAR/FRR @ T_verify operating points
+!workspaces/phase1-sweep/
+workspaces/phase1-sweep/*
+!workspaces/phase1-sweep/*.csv
+!workspaces/phase1-sweep/README.md
 
-# Phase 3 baseline-v3 (anchor init noise check)
-!workspaces/phase3-baseline-v3/
-workspaces/phase3-baseline-v3/*
-!workspaces/phase3-baseline-v3/manifest.json
-!workspaces/phase3-baseline-v3/sweep.csv
+# Phase 2 — Reputation-driven Byzantine exclusion (6 cells x 5 trials)
+# Headline: 30/30 trials, 0 false honest exclusions
+!workspaces/phase2-batch/
+workspaces/phase2-batch/*
+!workspaces/phase2-batch/*.csv
+!workspaces/phase2-batch/README.md
 
-# Phase 7 sparse-chain ABL (m_relay=1)
-!workspaces/phase7-sparse-chain/
-workspaces/phase7-sparse-chain/*
-!workspaces/phase7-sparse-chain/manifest.json
-!workspaces/phase7-sparse-chain/analysis.json
-!workspaces/phase7-sparse-chain/sweep.csv
-
-# Phase 3 v4 FINAL — supersedes v1/v2/v3
+# Phase 3 v4 FINAL — CEP-vs-hops production sweep (250 trials, 5 hop levels)
+# Headline: CEP=23m at k=3, sigma_k empirical delta=0.088
+# Supersedes v1 (0.47m artefact) and v2 (negative-delta artefact)
 !workspaces/phase3-prod-v4/
 workspaces/phase3-prod-v4/*
 !workspaces/phase3-prod-v4/manifest.json
@@ -148,17 +77,99 @@ workspaces/phase3-prod-v4/*
 !workspaces/phase3-prod-v4/cep_vs_hops.png
 !workspaces/phase3-prod-v4/sweep.csv
 
-# Phase 6 Tier B v3 (admission control + ATTACH-timeout retry)
+# Phase 7 ABL4 baseline-v3-50 — paired 50-trial with-TRN baseline
+# Headline: median 21.67m at k=3 (matches phase3-prod-v4 within sampling)
+# Supersedes 5-trial phase3-baseline-v3 (scaffold sampling artefact)
+!workspaces/phase3-baseline-v3-50/
+workspaces/phase3-baseline-v3-50/*
+!workspaces/phase3-baseline-v3-50/manifest.json
+!workspaces/phase3-baseline-v3-50/sweep.csv
+
+# Phase 4 — Failover timing production sweep (1200 follower switches, 4 scenarios)
+# Headline: p99=6.24s overall, S5 reputation-trigger p99=1.94s
+!workspaces/phase4-prod/
+workspaces/phase4-prod/*
+!workspaces/phase4-prod/manifest.json
+!workspaces/phase4-prod/analysis.json
+!workspaces/phase4-prod/switching_distributions.png
+!workspaces/phase4-prod/results.csv
+
+# Phase 5 — GNSS-spoofing detection (30 trials x 2 victims = 60 detections)
+# Headline: 98.3% detection, 0 FP, p99=0.60s detection time
+!workspaces/phase5-prod/
+workspaces/phase5-prod/*
+!workspaces/phase5-prod/manifest.json
+!workspaces/phase5-prod/analysis.json
+!workspaces/phase5-prod/detect_dist.png
+!workspaces/phase5-prod/results.csv
+
+# Phase 6 Tier B baseline (no admission control) — 15-trial Pareto comparison arm
+# Headline: 15/15 mission survival but 29.8s over_cap (capacity-invariant violated 6x)
+!workspaces/phase6-tier-b-prod/
+workspaces/phase6-tier-b-prod/*
+!workspaces/phase6-tier-b-prod/manifest.json
+!workspaces/phase6-tier-b-prod/analysis.json
+!workspaces/phase6-tier-b-prod/results.csv
+
+# Phase 6 Tier B v3 — production with admission control + ATTACH-timeout retry
+# Headline: 14/15 mission survival, over_cap = 0.000s (capacity invariant strict)
+# Supersedes v1 (no-AC baseline, kept above for Pareto) and v2 (jitter-only)
 !workspaces/phase6-tier-b-prod-v3/
 workspaces/phase6-tier-b-prod-v3/*
 !workspaces/phase6-tier-b-prod-v3/manifest.json
 !workspaces/phase6-tier-b-prod-v3/analysis.json
 !workspaces/phase6-tier-b-prod-v3/results.csv
 
-# Phase 8 production comparison
+# Phase 7 ablations: ABL1 (no spoof), ABL2 (no failover), ABL3 (no alpha_cap)
+# Headlines: ABL1 detection 98.3%->0%; ABL2 failover 6s->31s; ABL3 no change
+!workspaces/phase7-abl1-nospoof/
+workspaces/phase7-abl1-nospoof/*
+!workspaces/phase7-abl1-nospoof/manifest.json
+!workspaces/phase7-abl1-nospoof/analysis.json
+!workspaces/phase7-abl1-nospoof/results.csv
+!workspaces/phase7-abl2-nofailover/
+workspaces/phase7-abl2-nofailover/*
+!workspaces/phase7-abl2-nofailover/manifest.json
+!workspaces/phase7-abl2-nofailover/analysis.json
+!workspaces/phase7-abl2-nofailover/results.csv
+!workspaces/phase7-abl3-noloadbal/
+workspaces/phase7-abl3-noloadbal/*
+!workspaces/phase7-abl3-noloadbal/manifest.json
+!workspaces/phase7-abl3-noloadbal/analysis.json
+!workspaces/phase7-abl3-noloadbal/results.csv
+
+# Phase 7 ABL4-v4 — paired 50-trial no-TRN ablation (final)
+# Headline: degradation 117% at k=0, 32% at k=3 (TRN strictly necessary)
+# Supersedes phase7-abl4-notrn{,-v2,-v3} (5-trial scaffolds; sampling artefact)
+!workspaces/phase7-abl4-notrn-v4/
+workspaces/phase7-abl4-notrn-v4/*
+!workspaces/phase7-abl4-notrn-v4/manifest.json
+!workspaces/phase7-abl4-notrn-v4/sweep.csv
+
+# Phase 7 sparse-chain — m_relay=1 single-relay-per-hop ablation
+# Headline: CEP=33m at k=1 (vs 22m dense triangulated), validates K_max=3 ceiling
+!workspaces/phase7-sparse-chain/
+workspaces/phase7-sparse-chain/*
+!workspaces/phase7-sparse-chain/manifest.json
+!workspaces/phase7-sparse-chain/analysis.json
+!workspaces/phase7-sparse-chain/sweep.csv
+
+# Phase 8 — vanilla-Raft baseline + Byzantine adversarial measurement
+# Headlines: Raft 5.087s vs Ours 6.080s nominal; 19/19 Byz hbs in adversarial test
 !workspaces/phase8-prod/
 workspaces/phase8-prod/*
 !workspaces/phase8-prod/comparison.json
 !workspaces/phase8-prod/raft_t*.json
 !workspaces/phase8-prod/ours_t*.json
 !workspaces/phase8-prod/byz_t0.json
+!workspaces/phase8-prod/byz_t0.json.err
+
+# LaTeX build artifacts (only .tex and .pdf tracked under docs/v10_access/)
+docs/v10_access/*.aux
+docs/v10_access/*.log
+docs/v10_access/*.out
+docs/v10_access/*.toc
+docs/v10_access/missfont.log
+docs/v10_access/graphical_abstract/*.aux
+docs/v10_access/graphical_abstract/*.log
+docs/v10_access/graphical_abstract/*.out

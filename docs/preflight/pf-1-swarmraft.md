@@ -55,7 +55,7 @@ consensus + voting logic — estimated **3-7 days**, not +2 wk.
 1. **No license declared** on either repo. Legally "all rights
    reserved." Before redistributing or vendoring the code into our
    repo we must contact authors:
-   - yyanovich@skoltech.ru (corresponding author)
+   - Yury Yanovich (corresponding author, Skoltech; reach via arXiv publisher contact form)
    - Or co-authors at Skoltech
 
    For fair-use academic comparison (running their code to compare

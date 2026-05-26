@@ -602,7 +602,7 @@ canonical, yashmadhwal/SwarmRaft alternate — see
 finding that reference impl exists.
 
 ### Pre-step (before Phase 8 starts)
-- Contact Skoltech authors (yyanovich@skoltech.ru) for explicit
+- Contact SwarmRaft authors via arXiv (corresponding author Yury Yanovich, Skoltech; details in pf-1-swarmraft.md) for explicit
   license grant on `kapeldev/SwarmRaft` — repo has no LICENSE file,
   default "all rights reserved." Required before vendoring as
   submodule/fork. Fair-use academic comparison (run + report
