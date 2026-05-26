@@ -285,7 +285,6 @@ bft-uav-validation-lab/
 │   ├── phase7-sparse-chain/               ← Phase 7 single-relay-per-hop ablation
 │   └── phase8-prod/                       ← Phase 8 vanilla-Raft + Byzantine adversarial
 │
-└── configs/                               ← per-phase JSON configuration files
 ```
 
 Files in each workspace follow the convention:

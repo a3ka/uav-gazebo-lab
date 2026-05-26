@@ -1,0 +1,51 @@
+cff-version: 1.2.0
+message: "If you use this lab or its data in your work, please cite both the manuscript and this software release."
+type: software
+title: "bft-uav-validation-lab"
+abstract: >-
+  Empirical validation testbed for the IEEE Access manuscript
+  "Byzantine-Fault-Tolerant Hierarchical Navigation for GNSS-Denied UAV
+  Swarms: Architecture, Theoretical Analysis, and Empirical Validation"
+  (Kalynovskyi, 2026). The lab provides a ROS 2 + Gazebo + Python harness,
+  18 ROS 2 nodes, 18 message types, sweep scripts, Docker recipes, and the
+  production-sweep raw data for every numerical claim in Sections VI and
+  VII of the manuscript. Every paper number is traceable to a workspace
+  file via CODE_TO_CLAIM_MAPPING.md.
+authors:
+  - given-names: Oleksandr
+    family-names: Kalynovskyi
+    email: kalinovsky.research@proton.me
+    orcid: "https://orcid.org/0009-0009-1437-3252"
+repository-code: "https://github.com/ok-research/bft-uav-validation-lab"
+url: "https://github.com/ok-research/bft-uav-validation-lab"
+license: MIT
+version: "1.3.1"
+date-released: "2026-05-26"
+keywords:
+  - UAV swarm
+  - Byzantine fault tolerance
+  - GNSS-denied navigation
+  - cooperative localization
+  - factor graph
+  - GTSAM
+  - iSAM2
+  - terrain-referenced navigation
+  - reputation system
+  - ROS2
+  - Gazebo
+  - PX4
+  - reproducibility
+identifiers:
+  - description: "Software release archived on Zenodo (concept DOI, always resolves to latest version)"
+    type: doi
+    value: "10.5281/zenodo.20402492"
+preferred-citation:
+  type: article
+  title: "Byzantine-Fault-Tolerant Hierarchical Navigation for GNSS-Denied UAV Swarms: Architecture, Theoretical Analysis, and Empirical Validation"
+  authors:
+    - given-names: Oleksandr
+      family-names: Kalynovskyi
+      orcid: "https://orcid.org/0009-0009-1437-3252"
+  journal: "IEEE Access"
+  year: 2026
+  notes: "Manuscript submitted; companion code and data released at this repository."
