@@ -29,16 +29,16 @@ git add docs/v10_access/                 # if you want paper sources tracked
 git commit -m "v10 IEEE Access submission state"
 
 # Tag
-git tag -a v10.0 -m "IEEE Access submission v10 — Phases 1-8 empirical validation"
+git tag -a v1.0.0 -m "IEEE Access submission v10 — Phases 1-8 empirical validation"
 git push origin main
-git push origin v10.0
+git push origin v1.0.0
 ```
 
 Then on GitHub:
 
 1. Go to https://github.com/a3ka/uav-gazebo-lab/releases
-2. Click "Draft a new release" → choose tag `v10.0`
-3. Title: `v10.0 — IEEE Access submission (Phases 1-8 empirical validation)`
+2. Click "Draft a new release" → choose tag `v1.0.0`
+3. Title: `v1.0.0 — IEEE Access submission (Phases 1-8 empirical validation)`
 4. Description (paste):
    ```
    Companion release for IEEE Access submission of "Byzantine-Fault-Tolerant
@@ -70,10 +70,10 @@ Then on GitHub:
 Zenodo auto-creates the deposit within 1-2 min. To finalize metadata:
 
 1. Go to https://zenodo.org/account/settings/github/
-2. Find the new deposit (will show "v10.0 — IEEE Access submission" entry)
+2. Find the new deposit (will show "v1.0.0 — IEEE Access submission" entry)
 3. Click "View" → opens the auto-created deposit
 4. Click "Edit" → fill in:
-   - **Title**: `uav-gazebo-lab v10.0: Empirical validation testbed for BFT UAV swarm navigation`
+   - **Title**: `bft-uav-validation-lab v1.0.0: Empirical validation testbed for BFT UAV swarm navigation`
    - **Authors**: `Kalynovskyi, Oleksandr` + ORCID `0009-0009-1437-3252`
    - **Description**: copy from GitHub release description above
    - **License**: MIT (auto-detected from repo LICENSE file)
@@ -150,10 +150,10 @@ GitHub: free for public repos.
 If for any reason the Zenodo auto-link fails:
 
 1. Manual upload at https://zenodo.org/uploads/new
-2. Upload a tarball of the entire `uav-gazebo-lab` repository state at tag `v10.0`:
+2. Upload a tarball of the entire `uav-gazebo-lab` repository state at tag `v1.0.0`:
    ```bash
    cd /home/nous/research
-   git -C uav-gazebo-lab archive --format=tar.gz --prefix=uav-gazebo-lab-v10.0/ v10.0 > uav-gazebo-lab-v10.0.tar.gz
+   git -C uav-gazebo-lab archive --format=tar.gz --prefix=uav-gazebo-lab-v1.0.0/ v1.0.0 > uav-gazebo-lab-v1.0.0.tar.gz
    ```
 3. Fill in metadata as above; publish to obtain DOI.
 

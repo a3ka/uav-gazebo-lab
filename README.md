@@ -160,7 +160,7 @@ If you use this lab in your work, please cite the paper:
 
 And the code release directly:
 
-> O. Kalynovskyi, "bft-uav-validation-lab v10.0 — Empirical validation
+> O. Kalynovskyi, "bft-uav-validation-lab v1.0.0 — Empirical validation
 > testbed for BFT UAV swarm navigation," Zenodo, 2026,
 > doi: 10.5281/zenodo.XXXXXXX (DOI assigned at first tagged release).
 
