@@ -164,6 +164,18 @@ workspaces/phase8-prod/*
 !workspaces/phase8-prod/byz_t0.json
 !workspaces/phase8-prod/byz_t0.json.err
 
+# Phase 9 — PoO same-region forgery (Sentinel-2 multi-temporal)
+# Acquisition manifest (which tile / date pairs were used) IS committed
+# for reproducibility; raw downloaded Sentinel-2 scenes and per-trial
+# rows are too heavy and stay gitignored — re-runnable from the manifest.
+!workspaces/phase9-acquisition-manifest.csv
+workspaces/phase9-acquisition/
+workspaces/phase9-sweep/forgery_trials.csv
+!workspaces/phase9-sweep/
+workspaces/phase9-sweep/*
+!workspaces/phase9-sweep/figures/
+!workspaces/phase9-sweep/figures/*.png
+
 # LaTeX build artifacts (only .tex and .pdf tracked under docs/v10_access/)
 docs/v10_access/*.aux
 docs/v10_access/*.log
@@ -173,3 +185,13 @@ docs/v10_access/missfont.log
 docs/v10_access/graphical_abstract/*.aux
 docs/v10_access/graphical_abstract/*.log
 docs/v10_access/graphical_abstract/*.out
+
+# Internal AI-session handoff briefs and author-private submission notes:
+# kept local for the maintainer but excluded from the public/Zenodo release
+# (they reference private repo paths and capture author workflow rather
+# than science).
+docs/v10_access/AI_DETECTION_BRIEF.md
+docs/v10_access/SONNET_PAPER_HANDOFF.md
+docs/v10_access/PHASE_F_SONNET_BRIEF.md
+docs/v10_access/COVER_LETTER.md
+docs/v10_access/SUBMISSION_CHECKLIST.md

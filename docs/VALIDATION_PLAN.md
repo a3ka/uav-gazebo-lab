@@ -143,7 +143,7 @@ Complete all of these before starting Phase 0. Cost: free, ~half-day.
 | **PF-1** ✅ | SwarmRaft reference exists (Skoltech, arXiv 2508.00622). Pure Python Monte Carlo — not Gazebo/ROS2. Phase 8 revised: ~3-7 days ROS2 wrapping, not +2 wk reimplementation. License undeclared on the repos; author contact required before vendoring. See `docs/preflight/pf-1-swarmraft.md`. | Phase 8 scope known. |
 | **PF-2** ✅ | Copernicus account created + credentials in `.env` (user). Sentinel-2 staging itself deferred — Phase 0 item 8 satisfied by re-using Zurich Z16 tiles from sibling `einhard-runtime` (10× finer resolution, ORB smoke ~1998 keypoints/tile, 2.2×3.3 km coverage matches paper IV-D operational range). Sentinel-2 stays as Phase 1 sensitivity-sweep deliverable. See `docs/poo-algorithm-spec.md` "Dataset choice rationale". | Phase 0 unblocked. |
 | **PF-3** ⏸ | vast.ai account + deposit — **DEFERRED** by user decision (2026-05-21) until GPU image and first GPU experiment are ready (closer to Phase 1 start). Phase 0/4/5 do not block on this. | Phase 1 GPU work blocks. |
-| **PF-4** ✅ | v9_8 PDF + tex copied to `docs/reference/` as frozen reference (from `audit-harness/inputs/papers/`). | Avoid drift if paper revisions land. |
+| **PF-4** ✅ | v9_8 PDF + tex copied to `docs/reference/` as frozen reference (from the paper-authoring workspace). | Avoid drift if paper revisions land. |
 | **PF-5** ✅ | PoO algorithm spec locked at `docs/poo-algorithm-spec.md` (2026-05-21). All paper-locked values in §IV-B traced + cited; Phase-1-specific Track 2 deferrals closed with concrete defaults (SuperPoint pretrained weights, Mode A only, Lowe ratio matcher per paper spec, ~50 km replay byzantine model, Sentinel-2 L2A at 480×640 px). Sensitivity sweep over T_verify ∈ {0.2, 0.3, 0.4} retained as Phase 1 measurement output (paper-specified). | Phase 1 can now start. |
 | **PF-6** ✅ | Cost-tracking landed at `docs/cost-budget.md` ($500 cumulative cap, ~30% over $395 upper estimate). | Required by Hard Rule 6. |
 | **PF-7** 🟡 | Both Docker images build; push GPU to registry. CPU build kicked off, fixed uXRCE-DDS Agent install (source-build, not apt). Re-running in background. | Phase 0 first item depends on this. |
@@ -636,6 +636,70 @@ finding that reference impl exists.
   exclusion time, failover time, comm overhead.
 - Do NOT skip honest reporting of losses — reviewers will catch
   asymmetric comparisons.
+
+---
+
+## Phase 9 — PoO same-region forgery (GPU, vast.ai)
+
+### Goal
+Stress-test the PoO unforgeability claim under a stronger adversary
+than Phase 1's wrong-region replay: a captured peer with access to
+public Sentinel-2 imagery of the **same** region, attempting to
+fabricate a passing `V_score` from a different-acquisition capture
+of the location it claims.
+
+### Paper references
+§IV-B (PoO unforgeability rationale); Phase 1 (FAR/FRR baseline).
+
+### Hardware
+vast.ai single GPU (RTX 3060 / 3090 / 4090 — any CUDA-capable card
+with ≥ 8 GB VRAM).
+
+### Dependencies
+Phase 1 complete (provides the wrong-region baseline that Phase 9
+re-runs for comparison).
+
+### Time / cost
+~30-60 min wall time end-to-end; **~$1–3** vast.ai spend (acquisition
+network I/O dominates; GPU inference is ~1–2 min for 1500 trials on
+RTX 3090).
+
+### Spec
+Full pre-registered design in `docs/phase-9-spec.md`. Critic-locked
+5 conditions:
+1. Same location, different acquisition (Sentinel-2 multi-temporal).
+2. Single modality, no self-comparison (both ends Sentinel-2).
+3. Sweep over realism gap: same-season (≤ 3 mo) / cross-season (3–9 mo)
+   / cross-year (≥ 12 mo).
+4. Report `V_score` *distributions* (histograms), not binary FAR.
+5. Mode A focus (top-K=20, L2 + Lowe τ=0.7, `T_verify=0.30`).
+
+### Pass criteria
+This phase has no pass / fail gate — it is a measurement. The
+pre-registered interpretation matrix in `docs/phase-9-spec.md` maps
+the eventual same-region median `V_score` to a fixed paper action
+(strengthen / soften / honest reveal). All three outcomes are
+publishable; the pre-registration is what makes the test credible.
+
+### Expected outcomes
+- Same-region median `V_score` < 0.20 → strengthens §IV-B claim.
+- 0.20 ≤ median ≤ 0.35 → softens claim to "hard to forge beyond
+  acquisition gap X"; quantify X.
+- median > 0.35 → recommend Mode B for high-trust ops; declare
+  Mode A bound explicitly in Limitations.
+
+### Don't do
+- Do NOT test Mode B in this phase (unforgeable by hash equality
+  construction; brittleness to honest acquisition change is a
+  separate property and known).
+- Do NOT test a "guessing" generative adversary (different threat
+  model; out of scope, noted in spec).
+
+### Reproduction recipe
+`docs/VAST_AI_PHASE9_SETUP.md` is the single-page recipe for a
+fresh vast.ai instance: CDSE account, dependencies, run command,
+result pull-back. `scripts/phase9-campaign.sh` is the single-command
+orchestrator.
 
 ---
 

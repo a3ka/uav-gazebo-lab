@@ -178,10 +178,46 @@ Each phase's results doc records the exact reproduction state:
 | 6 Tier A | `docs/results/phase-6-tier-a-trial.md` |
 | 7 | `docs/results/phase-7.md` |
 | 8 | `docs/results/phase-8.md` |
+| 9 | `docs/results/phase-9.md` (template pre-execution; populated by `scripts/phase9-analyze.py`) |
 
 Each pin includes Docker image digest, git commit at sweep start, manifest of
 sweep parameters (k_list, trials_per_k, sigma_uwb_m, sigma_trn_m, seed_base,
 trn_period_s, wall_time_s).
+
+Phase 9 (PoO same-region forgery, executed 2026-05-30) maps to the §IV-B
+unforgeability claim and §VI-I Phase 9 results. Per the pre-registered
+interpretation matrix in `docs/phase-9-spec.md`, same-region median
+`V_score = 0.000 < 0.20` triggered the **STRENGTHEN** action, applied to
+§IV-B (Phase 1 Configuration paragraph) and §VI-I (new subsection).
+
+### §VI-I Phase 9 — PoO same-region forgery resistance
+
+| Paper claim | Source |
+|---|---|
+| Honest median V_score = 1.000 | `awk -F, 'NR>1 && $2=="honest_revisit" {print $11}' workspaces/phase9-sweep/forgery_trials.csv \| sort -n \| awk 'BEGIN{c=0}{a[c++]=$0}END{print a[int(c/2)]}'` (n=500) |
+| Wrong-region fab median = 0.000 | same awk, `population=="wrong_region_fab"` (n=500) |
+| Same-region fab median = 0.000 | same awk, `population=="same_region_fab"` (n=500) |
+| AUC (honest vs same-region fab) = 0.9217 | Mann-Whitney closed form via `scripts/phase9-analyze.py` |
+| FAR_same-region @ T=0.30 = 10.00% | Operating-points table in `workspaces/phase9-sweep/phase-9.md` |
+| FAR_wrong-region @ T=0.30 = 0.00% | same source |
+| FRR (honest) @ T=0.30 = 10.60% | same source |
+| Same-season gap median = 0.000 (n=41) | same workspace, gap_bin filter |
+| Cross-season gap median = 0.000 (n=338) | same |
+| Cross-year gap median = 0.000 (n=121) | same |
+| 8 tile locations × 6 dates = 48 scenes | `wc -l workspaces/phase9-acquisition-manifest.csv` |
+
+Acquisition source: Microsoft Planetary Computer STAC mirror of Sentinel-2 L2A
+(public access, no credentials required). The original spec referenced CDSE but
+that source serves assets via `s3://` URLs requiring separate S3 credentials; the
+public MPC mirror was used as a functional equivalent (data lineage identical:
+same Sentinel-2 L2A products, same scene IDs).
+
+Re-sweep: `bash scripts/phase9-campaign.sh` on any GPU instance (Microsoft
+Planetary Computer is anonymous; no setup beyond `pip install planetary-computer
+pystac-client rasterio lightglue`).
+
+The acquisition manifest (`workspaces/phase9-acquisition-manifest.csv`) is
+committed; raw scenes and trial rows are gitignored under `workspaces/phase9-*/`.
 
 ---
 
